@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SC 科目A-2 クイズ</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+  :root{
+    --bg:#f8fafc; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --line:#e2e8f0; --accent:#2563eb; --accent2:#1d4ed8;
+    --good:#15803d; --bad:#b91c1c; --warn:#a16207;
+    --shadow:0 10px 30px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:linear-gradient(180deg,#eff6ff 0,#f8fafc 180px);
+    color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI",
+      "Yu Gothic","Meiryo",sans-serif;line-height:1.55;
+  }
+  button,input,select,textarea{font:inherit}
+  .wrap{max-width:880px;margin:0 auto;padding:18px 16px 48px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+  h1{font-size:22px;margin:0;font-weight:800;letter-spacing:.01em}
+  .pill{font-size:12px;background:#dbeafe;color:#1e3a8a;padding:6px 10px;border-radius:999px;font-weight:700}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px}
+  .hidden{display:none!important}
+  .grid{display:grid;gap:12px}
+  .grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  .section-title{font-size:15px;font-weight:800;margin:0 0 8px}
+  .muted{color:var(--muted);font-size:13px}
+  .btn{
+    border:none;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;
+    transition:.14s transform,.14s background,.14s box-shadow;
+  }
+  .btn:active{transform:scale(.985)}
+  .primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(37,99,235,.23)}
+  .primary:hover{background:var(--accent2)}
+  .secondary{background:#eef2ff;color:#3730a3}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .danger{background:#fef2f2;color:#991b1b}
+  .settings{display:grid;gap:16px}
+  .setting-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  select,input[type="number"]{
+    border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff;color:var(--ink)
+  }
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid var(--line);padding:7px 9px;border-radius:999px;font-size:13px}
+  .quiz-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+  .progress{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-bottom:16px}
+  .progress>div{height:100%;background:linear-gradient(90deg,#2563eb,#60a5fa);width:0%}
+  .qmeta{font-size:12px;color:var(--muted);font-weight:700}
+  .question{font-size:19px;font-weight:800;margin:6px 0 14px;white-space:pre-wrap}
+  .choices{display:grid;gap:10px}
+  .choice{
+    width:100%;text-align:left;background:#fff;border:1.5px solid #cbd5e1;border-radius:14px;padding:14px 14px;
+    display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-weight:650;
+  }
+  .choice:hover{border-color:#93c5fd;background:#f8fbff}
+  .choice:disabled{cursor:default}
+  .label{
+    flex:0 0 30px;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    background:#eff6ff;color:#1d4ed8;font-weight:900
+  }
+  .choice.correct{border-color:#86efac;background:#f0fdf4}
+  .choice.correct .label{background:#dcfce7;color:#166534}
+  .choice.wrong{border-color:#fecaca;background:#fef2f2}
+  .choice.wrong .label{background:#fee2e2;color:#991b1b}
+  .feedback{margin-top:14px;padding:13px 14px;border-radius:12px;background:#f8fafc;border:1px solid var(--line)}
+  .feedback.good{background:#f0fdf4;border-color:#bbf7d0}
+  .feedback.bad{background:#fef2f2;border-color:#fecaca}
+  .feedback-title{font-weight:900;margin-bottom:4px}
+  .nextrow{margin-top:14px;display:flex;justify-content:flex-end}
+  .score{font-size:44px;font-weight:900;letter-spacing:-.03em}
+  .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+  .kpi{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .kpi b{display:block;font-size:22px}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border-bottom:1px solid var(--line);padding:9px 7px;text-align:left;vertical-align:top}
+  th{color:#475569;background:#f8fafc}
+  details{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+  summary{cursor:pointer;font-weight:800}
+  .review-item{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .small{font-size:12px}
+  textarea{
+    width:100%;min-height:170px;border:1px solid var(--line);border-radius:12px;padding:10px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px
+  }
+  .footer{margin-top:16px;text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>SC 科目A-2 クイズ</h1>
+    <div class="pill">タップ回答・オフライン対応</div>
+  </div>
+
+  <section id="start" class="card">
+    <div class="settings">
+      <div>
+        <div class="section-title">出題設定</div>
+        <div class="muted">問題バンクからランダムに出題します。回答は選択肢をタップするだけです。</div>
+      </div>
+
+      <div class="grid grid2">
+        <label class="setting-row">
+          <span><b>出題数</b><br><span class="muted">最大 <span id="bankCount"></span> 問</span></span>
+          <select id="count">
+            <option value="10">10問</option>
+            <option value="20" selected>20問</option>
+            <option value="30">30問</option>
+            <option value="50">50問</option>
+            <option value="100">100問</option>
+          </select>
+        </label>
+
+        <label class="setting-row">
+          <span><b>解説表示</b><br><span class="muted">回答直後か、最後にまとめて表示</span></span>
+          <select id="mode">
+            <option value="immediate" selected>回答直後</option>
+            <option value="end">最後にまとめて</option>
+          </select>
+        </label>
+      </div>
+
+      <div>
+        <div class="section-title">出題分野</div>
+        <div id="categoryChips" class="chips"></div>
+      </div>
+
+      <div class="grid grid2">
+        <button id="startBtn" class="btn primary">クイズ開始</button>
+        <button id="wrongBtn" class="btn secondary">前回の誤答だけ復習</button>
+      </div>
+
+      <details>
+        <summary>追加問題をJSONで読み込む</summary>
+        <p class="muted">今後ChatGPTが生成した問題を、この形式で追加できます。読み込んだ問題はこの端末のブラウザに保存されます。</p>
+        <textarea id="importBox" placeholder='[{"category":"ネットワーク","question":"問題文","choices":["選択肢1","選択肢2","選択肢3","選択肢4"],"answer":1,"explanation":"解説"}]'></textarea>
+        <div class="grid grid2" style="margin-top:10px">
+          <button id="importBtn" class="btn ghost">JSONを追加</button>
+          <button id="clearCustomBtn" class="btn danger">追加問題を削除</button>
+        </div>
+        <div id="importMsg" class="muted" style="margin-top:8px"></div>
+      </details>
+    </div>
+  </section>
+
+  <section id="quiz" class="card hidden">
+    <div class="quiz-head">
+      <div>
+        <div id="qno" class="qmeta"></div>
+        <div id="cat" class="qmeta"></div>
+      </div>
+      <button id="quitBtn" class="btn ghost small">中断</button>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div id="question" class="question"></div>
+    <div id="choices" class="choices"></div>
+    <div id="feedback" class="feedback hidden"></div>
+    <div class="nextrow">
+      <button id="nextBtn" class="btn primary hidden">次の問題</button>
+    </div>
+  </section>
+
+  <section id="result" class="card hidden">
+    <div class="section-title">結果</div>
+    <div id="score" class="score"></div>
+    <div class="kpis">
+      <div class="kpi"><span class="muted">正解</span><b id="correctKpi"></b></div>
+      <div class="kpi"><span class="muted">正答率</span><b id="rateKpi"></b></div>
+      <div class="kpi"><span class="muted">誤答</span><b id="wrongKpi"></b></div>
+    </div>
+
+    <div class="section-title">分野別</div>
+    <div style="overflow:auto">
+      <table>
+        <thead><tr><th>分野</th><th>正解</th><th>出題</th><th>正答率</th></tr></thead>
+        <tbody id="catTable"></tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:18px">復習</div>
+    <div id="review"></div>
+
+    <div class="grid grid2" style="margin-top:16px">
+      <button id="retryWrongBtn" class="btn secondary">今回の誤答だけ再挑戦</button>
+      <button id="homeBtn" class="btn primary">設定に戻る</button>
+    </div>
+  </section>
+
+  <div class="footer">問題・選択肢は知識によって判定できるよう、文体・長さ・断定度をできるだけ均質化しています。</div>
+</div>
+
+<script>
+const baseBank = [
+  {
+    category:"暗号・PKI",
+    question:"TLS 1.3の暗号スイート TLS_AES_128_GCM_SHA256 が指定する内容として最も適切なものはどれか。",
+    choices:[
+      "AES-128-GCM、ECDHE鍵交換、ECDSA署名",
+      "AES-128-GCM、RSA鍵交換、SHA-256証明書署名",
+      "AES-128-GCMとSHA-256。鍵交換方式と署名方式は別に選択される",
+      "AES-128-GCMとSHA-256。鍵交換方式は固定され、署名方式だけが別に選択される"
+    ],
+    answer:2,
+    explanation:"TLS 1.3の暗号スイート名は主にAEAD暗号とHKDFで用いるハッシュを表し、鍵交換方式や署名方式は別にネゴシエーションされる。"
+  },
+  {
+    category:"暗号・PKI",
+    question:"署名付きJWT（JWS）について最も適切なものはどれか。",
+    choices:[
+      "ペイロードは署名によって暗号化されるため、第三者から内容を読まれない",
+      "ペイロードはBase64URLで表現されることがあり、署名は主に改ざん検知と真正性確認に用いられる",
+      "署名鍵を持たない受信者はペイロードを復号できない",
+      "署名付きJWTでは有効期限を表現するクレームを含められない"
+    ],
+    answer:1,
+    explanation:"JWSの署名は機密性を与えない。ペイロードは通常読めるため、秘匿が必要ならJWEなどを使う。"
+  },
+  {
+    category:"暗号・PKI",
+    question:"HMACに関する説明として最も適切なものはどれか。",
+    choices:[
+      "公開鍵とハッシュ関数を利用し、送信者の否認防止に用いる",
+      "共有秘密鍵とハッシュ関数を利用し、完全性とメッセージ認証に用いる",
+      "共有秘密鍵を利用せず、受信者が公開情報だけで検証する",
+      "メッセージ本文を暗号化し、機密性と完全性を同時に与える"
+    ],
+    answer:1,
+    explanation:"HMACは共有秘密鍵とハッシュ関数に基づくMACであり、完全性と認証に使えるが、共有鍵方式なので否認防止には適さない。"
+  },
+  {
+    category:"暗号・PKI",
+    question:"Diffie-Hellman鍵共有で p=23, g=5, Aの秘密値a=6 とする。Aの公開値 g^a mod p はどれか。",
+    choices:["2","8","13","18"],
+    answer:1,
+    explanation:"5^6 mod 23 = 8。計算では途中で剰余を取り、値を小さく保つとよい。"
+  },
+  {
+    category:"暗号・PKI",
+    question:"OCSPの役割として最も適切なものはどれか。",
+    choices:[
+      "特定の証明書の失効状態をオンラインで問い合わせる",
+      "証明書の秘密鍵を定期的に更新する",
+      "証明書チェーンを短縮して検証を省略する",
+      "証明書のSANをDNSから取得する"
+    ],
+    answer:0,
+    explanation:"OCSPはOnline Certificate Status Protocolで、証明書の失効状態をオンラインで確認する。"
+  },
+  {
+    category:"認証・認可",
+    question:"OAuth 2.0 Authorization Code FlowでPKCEを用いる主な目的として最も適切なものはどれか。",
+    choices:[
+      "IDトークンの署名方式をクライアント側で固定する",
+      "認可コードを取得した第三者による不正なトークン交換を困難にする",
+      "stateパラメータを不要にしてCSRF対策を一本化する",
+      "アクセストークンを暗号化してリソースサーバへ渡す"
+    ],
+    answer:1,
+    explanation:"PKCEはcode_challengeとcode_verifierを対応付け、認可コード横取り攻撃への耐性を高める。"
+  },
+  {
+    category:"認証・認可",
+    question:"OpenID ConnectにおけるIDトークンとアクセストークンの関係として最も適切なものはどれか。",
+    choices:[
+      "IDトークンは認証結果をクライアントへ伝え、アクセストークンはAPIへの認可に用いられる",
+      "IDトークンはAPIへの認可に用い、アクセストークンは利用者の本人確認に用いられる",
+      "両者は用途が同じで、名称だけが異なる",
+      "両者ともリソースサーバが発行し、認可サーバは関与しない"
+    ],
+    answer:0,
+    explanation:"OIDCではIDトークンは認証、アクセストークンは保護リソースへのアクセス認可に用いられる。"
+  },
+  {
+    category:"認証・認可",
+    question:"KerberosでTGTを取得した利用者がサービスを利用する際の流れとして最も適切なものはどれか。",
+    choices:[
+      "TGTを対象サービスへ直接提示し、そのまま認証を完了する",
+      "TGTをTGSへ提示してサービスチケットを取得し、そのチケットを対象サービスへ提示する",
+      "TGTをCAへ提示して短期証明書を発行してもらう",
+      "TGTをDNSへ登録し、対象サービスがTGTを参照する"
+    ],
+    answer:1,
+    explanation:"TGTはサービスチケットを得るためのチケット。対象サービスにはTGSが発行したサービスチケットを提示する。"
+  },
+  {
+    category:"ネットワーク",
+    question:"ステートレスFWで、社内PCの動的ポート49152～65535から外部WebサーバのTCP/443へ接続する。戻り通信を必要最小限に許可する条件として最も適切なものはどれか。",
+    choices:[
+      "送信元ポート443、宛先ポート49152～65535、ACK設定済みTCP",
+      "送信元ポート49152～65535、宛先ポート443、ACK設定済みTCP",
+      "送信元ポート443、宛先ポート443、SYN設定済みTCP",
+      "送信元ポート49152～65535、宛先ポート443、SYN-ACK設定済みTCP"
+    ],
+    answer:0,
+    explanation:"戻り通信はWebサーバ:443からクライアントの動的ポートへ向かう。ステートレスFWではACKフラグなどを条件にすることがある。"
+  },
+  {
+    category:"ネットワーク",
+    question:"IPv4ネットワーク 192.168.10.0/27 で、一般的にホストへ割り当て可能なアドレス数はどれか。",
+    choices:["14","30","32","62"],
+    answer:1,
+    explanation:"/27はホスト部5ビットで32個のアドレス。ネットワークアドレスとブロードキャストアドレスを除き30個。"
+  },
+  {
+    category:"ネットワーク",
+    question:"OSPFの説明として最も適切なものはどれか。",
+    choices:[
+      "距離ベクトル型で、主にホップ数を用いて経路を選択する",
+      "リンクステート型で、トポロジ情報から最短経路を計算する",
+      "AS間向けのパスベクトル型で、AS_PATHを基に経路を選択する",
+      "ホスト名をIPアドレスに対応付けて経路を選択する"
+    ],
+    answer:1,
+    explanation:"OSPFはリンクステート型IGP。各ルータがLSDBを構築し、SPFアルゴリズムで最短経路を計算する。"
+  },
+  {
+    category:"ネットワーク",
+    question:"IPv6 Neighbor Discoveryの役割として最も適切なものはどれか。",
+    choices:[
+      "ICMPv6を利用して近隣ノード探索やルータ探索などを行う",
+      "TCPポート番号からMACアドレスを取得する",
+      "DNSSECの署名検証に必要な公開鍵を配布する",
+      "IPv6パケットをIPv4へ暗号化変換する"
+    ],
+    answer:0,
+    explanation:"IPv6 NDはICMPv6を利用し、IPv4のARPに相当する近隣探索に加えてルータ探索なども担う。"
+  },
+  {
+    category:"DNS・メール",
+    question:"DNSSECのDSレコードの役割として最も適切なものはどれか。",
+    choices:[
+      "親ゾーンに置かれ、子ゾーンのDNSKEYに対応する情報を保持して信頼の連鎖を形成する",
+      "RRsetに対するデジタル署名そのものを格納する",
+      "ゾーンの公開鍵そのものを格納する",
+      "権威DNSサーバのIPv6アドレスを格納する"
+    ],
+    answer:0,
+    explanation:"DSはDelegation Signer。親ゾーンに配置され、子ゾーンDNSKEYとの信頼の連鎖を形成する。"
+  },
+  {
+    category:"DNS・メール",
+    question:"DNSSECのRRSIGレコードに格納されるものとして最も適切なものはどれか。",
+    choices:[
+      "DNSSEC検証用の公開鍵",
+      "RRsetに対するデジタル署名",
+      "親ゾーンが保持する子ゾーン鍵のダイジェスト",
+      "権威DNSサーバのアドレス情報"
+    ],
+    answer:1,
+    explanation:"RRSIGはRRsetに対する署名。DNSKEYは公開鍵、DSは親から子への信頼をつなぐ情報。"
+  },
+  {
+    category:"DNS・メール",
+    question:"DMARCで、SPFはpassしたがHeader Fromとアラインせず、DKIMはpassしd=がHeader Fromとアラインしている。DMARCの判定として最も適切なものはどれか。",
+    choices:[
+      "SPFとDKIMの両方がアラインしていないためfail",
+      "DKIMがpassしアラインしているためpass",
+      "SPFがアラインしていないためfail",
+      "SPFとDKIMの結果が異なるためtemperror"
+    ],
+    answer:1,
+    explanation:"DMARCは、アラインしたSPFまたはDKIMの少なくとも一方がpassすればpassとなる。"
+  },
+  {
+    category:"Webセキュリティ",
+    question:"SQL文のORDER BY句に利用者指定の列名を反映したい。SQLインジェクション対策として最も適切なものはどれか。",
+    choices:[
+      "列名もプレースホルダに渡す",
+      "列名中のシングルクォートをエスケープする",
+      "許可するソート項目を列挙し、固定された列名へ対応付ける",
+      "列名をURLエンコードしてから連結する"
+    ],
+    answer:2,
+    explanation:"バインド変数は値に使うのが基本で、識別子や構文要素には使えない。列名は許可リスト方式が適切。"
+  },
+  {
+    category:"Webセキュリティ",
+    question:"JavaScript文字列リテラル内に利用者入力を埋め込む場合のXSS対策として最も適切なものはどれか。",
+    choices:[
+      "HTML本文向けエスケープを適用する",
+      "JavaScript文脈に応じたエンコードや安全なJSONシリアライズを用いる",
+      "URLパーセントエンコードを適用する",
+      "CSS識別子向けエスケープを適用する"
+    ],
+    answer:1,
+    explanation:"XSS対策は出力コンテキスト依存。JavaScript文字列中ではHTML本文向けエスケープだけでは不十分。"
+  },
+  {
+    category:"Webセキュリティ",
+    question:"セッション固定攻撃への対策として最も適切なものはどれか。",
+    choices:[
+      "ログイン成功時に新しいセッションIDを発行し、認証前のIDを無効化する",
+      "ログイン画面をHTTPS化する",
+      "CookieにSameSite=Laxを設定する",
+      "セッションタイムアウトを短くする"
+    ],
+    answer:0,
+    explanation:"セッション固定対策の中心は、認証前後で同じセッションIDを使い続けないこと。"
+  },
+  {
+    category:"Webセキュリティ",
+    question:"CORSの説明として最も適切なものはどれか。",
+    choices:[
+      "異なるオリジンのレスポンスをブラウザ上のJavaScriptが読み取れるかを、サーバ応答ヘッダなどに基づいて制御する",
+      "クロスサイトのリクエスト自体をネットワーク層で遮断する",
+      "TLS暗号スイートの選択をWebサーバ側で制御する",
+      "ブラウザ以外のHTTPクライアントからのアクセスを制御する"
+    ],
+    answer:0,
+    explanation:"CORSはSame-Origin Policyの例外をサーバが許可するための仕組み。FWのように通信そのものを遮断する仕組みではない。"
+  },
+  {
+    category:"Webセキュリティ",
+    question:"SSRF対策として最も適切なものはどれか。",
+    choices:[
+      "URL文字列に127.0.0.1が含まれる場合だけ拒否する",
+      "HTTPS URLだけを許可する",
+      "許可するスキームと接続先を限定し、名前解決後のIPとリダイレクト先も検証する",
+      "DNSで名前解決できるホストだけ許可する"
+    ],
+    answer:2,
+    explanation:"SSRFでは文字列ベースの簡易ブラックリストでは不十分。許可リストと実際の接続先検証、リダイレクト再検証が重要。"
+  },
+  {
+    category:"DB",
+    question:"あるトランザクションが同じ行を2回読み取ったところ、その間に別トランザクションが更新・コミットしたため値が変化した。この現象はどれか。",
+    choices:[
+      "ダーティリード",
+      "ノンリピータブルリード",
+      "ファントムリード",
+      "ロストアップデート"
+    ],
+    answer:1,
+    explanation:"同じ行を再読したとき値が変わるのはノンリピータブルリード。"
+  },
+  {
+    category:"DB",
+    question:"トランザクションAが資源XをロックしYを待ち、BがYをロックしXを待っている。この状態として最も適切なものはどれか。",
+    choices:[
+      "デッドロック",
+      "ファントムリード",
+      "ロールバックポイント",
+      "楽観的ロック"
+    ],
+    answer:0,
+    explanation:"互いに相手が保持する資源を待つ循環待ちはデッドロック。"
+  },
+  {
+    category:"DB",
+    question:"WAL（Write Ahead Logging）の原則として最も適切なものはどれか。",
+    choices:[
+      "更新済みデータページより先に、対応するログを安定記憶装置へ書き込む",
+      "データページを書き込んだ後でログを生成する",
+      "コミット済みトランザクションのログは保持しない",
+      "チェックポイント時にログをすべて削除する"
+    ],
+    answer:0,
+    explanation:"WALではデータページの永続化より先にログを永続化し、障害回復可能性を確保する。"
+  },
+  {
+    category:"開発・脆弱性",
+    question:"SASTとDASTの関係として最も適切なものはどれか。",
+    choices:[
+      "SASTは主にソースコードなどを解析し、DASTは稼働中アプリケーションの外部挙動を検査する",
+      "SASTは稼働中システムを外部から検査し、DASTはソースコードを解析する",
+      "SASTはライセンス検査、DASTは依存関係検査を行う",
+      "SASTとDASTはいずれも実行せずに設計書だけを検査する"
+    ],
+    answer:0,
+    explanation:"SASTは静的解析、DASTは動的解析。"
+  },
+  {
+    category:"開発・脆弱性",
+    question:"ファジングの説明として最も適切なものはどれか。",
+    choices:[
+      "大量の異常値や予想外入力を与え、クラッシュや異常動作を検出する",
+      "コード規約違反だけを目視確認する",
+      "障害履歴からMTBFを計算する",
+      "要件定義と設計書の対応表を作成する"
+    ],
+    answer:0,
+    explanation:"ファジングは異常入力を大量投入して未知の不具合や脆弱性を発見するテスト手法。"
+  },
+  {
+    category:"開発・脆弱性",
+    question:"ファイルの権限確認後、実際に開くまでの間に対象が差し替えられる脆弱性はどれか。",
+    choices:[
+      "TOCTOU",
+      "Use After Free",
+      "整数オーバーフロー",
+      "スタックオーバーフロー"
+    ],
+    answer:0,
+    explanation:"Time Of Check To Time Of Useの競合条件。確認時と利用時で対象が変化する。"
+  },
+  {
+    category:"サービス管理・BCP",
+    question:"繰り返し発生する障害について、根本原因を特定し恒久対策を行う活動に最も近いものはどれか。",
+    choices:[
+      "インシデント管理",
+      "問題管理",
+      "サービスレベル管理",
+      "キャパシティ管理"
+    ],
+    answer:1,
+    explanation:"インシデント管理は早期復旧、問題管理は根本原因分析と再発防止。"
+  },
+  {
+    category:"サービス管理・BCP",
+    question:"障害発生後4時間以内にサービスを再開し、最大30分前までのデータ消失を許容する。RTOとRPOの組合せとして最も適切なものはどれか。",
+    choices:[
+      "RTO 30分、RPO 4時間",
+      "RTO 4時間、RPO 30分",
+      "RTO 4時間30分、RPO 30分",
+      "RTO 30分、RPO 3時間30分"
+    ],
+    answer:1,
+    explanation:"RTOは復旧目標時間、RPOは許容できるデータ損失時点。"
+  },
+  {
+    category:"サービス管理・BCP",
+    question:"日曜にフルバックアップ、月～木曜に差分バックアップを取得し、木曜時点へ復旧する。通常必要なバックアップはどれか。",
+    choices:[
+      "日曜フルと木曜差分",
+      "日曜フルと月～木曜の全差分",
+      "木曜差分だけ",
+      "水曜差分と木曜差分"
+    ],
+    answer:0,
+    explanation:"差分バックアップは直近フル以降の変更を累積して保存するため、フル＋最新差分で復旧できる。"
+  },
+  {
+    category:"サービス管理・BCP",
+    question:"増分バックアップ方式で、日曜にフル、月～木曜に毎日増分を取得した。木曜時点へ復旧するために必要なものはどれか。",
+    choices:[
+      "日曜フルと木曜増分",
+      "日曜フルと月～木曜の各増分",
+      "月～木曜の増分だけ",
+      "日曜フルと水曜・木曜の増分"
+    ],
+    answer:1,
+    explanation:"増分は直前バックアップ以降の変更だけを保存するため、フルとその後の全増分が必要。"
+  },
+  {
+    category:"監査・ISMS",
+    question:"ISMSの適用宣言書（SoA）の説明として最も適切なものはどれか。",
+    choices:[
+      "採用する管理策とその適用状況・採否理由などを整理する",
+      "情報セキュリティインシデントの時系列ログを記録する",
+      "監査証拠を一元保管する",
+      "情報資産の金銭価値だけを一覧化する"
+    ],
+    answer:0,
+    explanation:"SoAは選択した管理策の適用状況や採否理由を明確にする文書。"
+  },
+  {
+    category:"監査・ISMS",
+    question:"システム監査人の独立性に関する説明として最も適切なものはどれか。",
+    choices:[
+      "監査対象から精神的・外観的にも独立した立場を確保する",
+      "自ら設計・運用したシステムを自ら監査する",
+      "監査対象部門の責任者が監査結論を決定する",
+      "内部監査では独立性を考慮しない"
+    ],
+    answer:0,
+    explanation:"監査の信頼性確保には独立性が重要。"
+  },
+  {
+    category:"監査・ISMS",
+    question:"Common CriteriaのEALに関する説明として最も適切なものはどれか。",
+    choices:[
+      "評価における保証の深さや厳密さの水準を表す",
+      "製品の暗号強度をビット数で表す",
+      "脆弱性の悪用成功率を表す",
+      "製品の可用性を年間停止時間で表す"
+    ],
+    answer:0,
+    explanation:"EALはEvaluation Assurance Levelで、評価保証水準を表す。"
+  },
+  {
+    category:"マルウェア・インシデント",
+    question:"同一の少数パスワード候補を、多数の利用者アカウントへ順番に試す攻撃はどれか。",
+    choices:[
+      "パスワードスプレー",
+      "クレデンシャルスタッフィング",
+      "レインボーテーブル攻撃",
+      "辞書攻撃によるオフライン解析"
+    ],
+    answer:0,
+    explanation:"パスワードスプレーは少数のよく使われるパスワードを多数アカウントへ試す。"
+  },
+  {
+    category:"マルウェア・インシデント",
+    question:"感染端末が社内から外部のC&CサーバへHTTPS接続を開始する方式の説明として最も適切なものはどれか。",
+    choices:[
+      "外向き通信が許可された環境では、外部からの着信制限があっても通信が成立する場合がある",
+      "HTTPSでは宛先IPアドレスを使用しないためFWの影響を受けない",
+      "TLSを使うとFWのアクセス制御が無効になる",
+      "C&C通信はICMPに限定されるためHTTPSは利用されない"
+    ],
+    answer:0,
+    explanation:"コネクトバック型では感染端末側から外向き接続を開始するため、着信制限下でも通信が成立することがある。"
+  },
+  {
+    category:"マルウェア・インシデント",
+    question:"デジタルフォレンジックスで、電源断前に優先して取得すべき情報として最も適切なものはどれか。",
+    choices:[
+      "RAM上の実行中プロセスや暗号鍵などの揮発性情報",
+      "既に外部媒体へ保存済みのバックアップ",
+      "電源断後も保持されるディスク上の静的ファイル",
+      "公開Webサイトに掲載された組織情報"
+    ],
+    answer:0,
+    explanation:"揮発性情報は電源断で失われるため、必要に応じて先に取得する。"
+  },
+  {"category": "リスク・ISMS・監査", "question": "情報セキュリティリスク対応で、リスクの原因となる業務自体を中止する判断に最も近いものはどれか。", "choices": ["リスク回避", "リスク低減", "リスク移転", "リスク受容"], "answer": 0, "explanation": "リスク回避は、リスクを生む活動を開始しない、又は中止する対応である。"},
+  {"category": "リスク・ISMS・監査", "question": "BIA（事業影響度分析）の目的として最も適切なものはどれか。", "choices": ["業務中断が事業へ与える影響を評価し、復旧優先度や目標を検討する", "脆弱性スキャンの結果からCVSS基本値を再計算する", "監査証拠の十分性を評価して監査意見を決定する", "暗号鍵の更新周期を資産ごとに決定する"], "answer": 0, "explanation": "BIAは業務中断の影響を把握し、重要業務やRTO/RPOなどBCP上の目標設定に役立てる。"},
+  {"category": "リスク・ISMS・監査", "question": "情報セキュリティにおける脅威と脆弱性の関係として最も適切なものはどれか。", "choices": ["脅威は損害を引き起こし得る原因、脆弱性は脅威に悪用され得る弱点である", "脅威は管理策の強度、脆弱性は残留リスクの許容水準である", "脅威は資産価値、脆弱性は事故発生後の復旧時間である", "脅威は監査項目、脆弱性は監査証拠の信頼度である"], "answer": 0, "explanation": "脅威は望ましくない事象の原因となり得るもの、脆弱性はその脅威に悪用され得る弱点である。"},
+  {"category": "リスク・ISMS・監査", "question": "リスク所有者（risk owner）の役割として最も適切なものはどれか。", "choices": ["担当するリスクについて説明責任と対応権限を持つ", "監査対象部門から独立して監査意見を発行する", "認証機関としてISO認証の合否を決定する", "脆弱性情報へCVE番号を割り当てる"], "answer": 0, "explanation": "リスク所有者は、特定のリスクを管理し対応する責任と権限を持つ主体である。"},
+  {"category": "リスク・ISMS・監査", "question": "ISMSの内部監査で、監査の客観性を高める方法として最も適切なものはどれか。", "choices": ["監査対象の業務を日常的に担当していない者を監査員にする", "監査対象部門の責任者に監査手続を選択してもらう", "前回の監査結果を今回の監査証拠として利用する", "監査対象者の口頭説明を中心に監査結論を作成する"], "answer": 0, "explanation": "自らの業務を監査する状況を避けるなど、客観性と公平性を確保することが重要である。"},
+  {"category": "リスク・ISMS・監査", "question": "情報資産台帳を整備する主な目的として最も適切なものはどれか。", "choices": ["保護対象となる情報資産と所有者などを把握し、適切な管理につなげる", "ネットワーク経路を自動計算し、ルーティングテーブルへ反映する", "OSのパッチ適用順序をCVSS値から自動決定する", "監査報告書の文面を標準化する"], "answer": 0, "explanation": "資産台帳は資産の識別、所有者、重要度などを把握し、リスク管理の基礎とする。"},
+  {"category": "リスク・ISMS・監査", "question": "残留リスクの説明として最も適切なものはどれか。", "choices": ["リスク対応を実施した後にも残っているリスク", "リスク分析を始める前に推定したリスク", "第三者へ移転した部分のリスク", "監査で指摘されなかったリスク"], "answer": 0, "explanation": "残留リスクは、管理策やその他の対応を適用した後に残るリスクを指す。"},
+  {"category": "リスク・ISMS・監査", "question": "監査証拠の信頼性を比較した場合、一般により信頼性が高いと考えられるものはどれか。", "choices": ["監査人がシステム設定を直接確認して取得した記録", "担当者が記憶に基づいて説明した内容", "監査対象部門が口頭で示した運用方針", "作成者が特定できないメモ"], "answer": 0, "explanation": "監査人が直接取得した客観的証拠は、口頭説明などに比べて信頼性が高いと評価されやすい。"},
+  {"category": "リスク・ISMS・監査", "question": "職務分離の考え方を適用した例として最も適切なものはどれか。", "choices": ["支払データの作成者と承認者を別の担当者にする", "利用者本人に自分のアクセス権を自由に設定させる", "管理者IDを部門内で共有して運用する", "障害対応と監査を同じ担当者が同時に行う"], "answer": 0, "explanation": "不正や誤りを単独で完結しにくくするため、相互牽制が働くよう重要な職務を分離する。"},
+  {"category": "リスク・ISMS・監査", "question": "セキュリティポリシー体系で、具体的な設定値や操作手順に最も近い文書はどれか。", "choices": ["手順書・標準類", "基本方針", "経営理念", "監査意見書"], "answer": 0, "explanation": "基本方針の下に標準や手順を設け、具体的な設定値や運用方法を定める構成が一般的である。"},
+  {"category": "暗号・PKI", "question": "AES-GCMの特徴として最も適切なものはどれか。", "choices": ["暗号化と認証を組み合わせたAEADとして利用できる", "ブロック暗号を公開鍵暗号へ変換して利用する", "電子署名の検証鍵を暗号文へ埋め込む", "ハッシュ値から平文を復元する機能を持つ"], "answer": 0, "explanation": "GCMはCTR型の暗号化と認証タグ生成を組み合わせ、機密性と完全性を提供するAEADモードである。"},
+  {"category": "暗号・PKI", "question": "CBCモードでIVに求められる性質として最も適切なものはどれか。", "choices": ["同じ鍵で暗号化する際に予測困難なIVを用いる", "平文と同じ値をIVとして用いる", "秘密鍵と同じ値をIVとして用いる", "暗号文の末尾ブロックを常にIVとして用いる"], "answer": 0, "explanation": "CBCでは同一鍵の下でIVの再利用や予測可能性が問題となるため、適切なIV生成が必要である。"},
+  {"category": "暗号・PKI", "question": "前方秘匿性（Forward Secrecy）の説明として最も適切なものはどれか。", "choices": ["長期秘密鍵が後に漏えいしても、過去のセッション鍵が直ちに復元されない性質", "現在のセッション鍵を将来のセッションで再利用できる性質", "公開鍵証明書の有効期間を延長する性質", "暗号文のサイズを平文より小さくする性質"], "answer": 0, "explanation": "エフェメラルDHなどを使うと、長期鍵漏えい後も過去セッションの機密性を維持しやすい。"},
+  {"category": "暗号・PKI", "question": "パスワード保存でソルトを利用する効果として最も適切なものはどれか。", "choices": ["同じパスワードでも利用者ごとに異なるハッシュ値になり、事前計算攻撃の効率を下げる", "ハッシュ値から元のパスワードを復号できるようにする", "パスワードの文字数を自動的に長くする", "認証後の通信を共通鍵で暗号化する"], "answer": 0, "explanation": "利用者ごとにランダムなソルトを加えると、同じパスワードでもハッシュ値が異なり、レインボーテーブルの利用効率を下げられる。"},
+  {"category": "暗号・PKI", "question": "パスワード保存でペッパーを利用する設計として最も適切なものはどれか。", "choices": ["DBとは別の安全な場所で共通の秘密値を管理し、ハッシュ計算に組み込む", "各利用者のソルトを平文パスワードの代わりに保存する", "公開鍵証明書にペッパーを記載して配布する", "認証成功後にペッパーをCookieへ格納する"], "answer": 0, "explanation": "ペッパーはソルトと異なり秘密として管理する追加値で、DB流出時の攻撃耐性を高める目的で使われることがある。"},
+  {"category": "暗号・PKI", "question": "PBKDF2やArgon2をパスワード保存に用いる理由として最も適切なものはどれか。", "choices": ["計算コストを高め、パスワード候補を大量試行する攻撃の負担を増やす", "暗号文を圧縮して保存容量を削減する", "パスワードの文字コードを統一する", "公開鍵暗号の鍵長を短縮する"], "answer": 0, "explanation": "パスワードKDFは意図的に計算を重くし、オフライン総当たり攻撃のコストを高める。"},
+  {"category": "暗号・PKI", "question": "楕円曲線暗号（ECC）の一般的な特徴として最も適切なものはどれか。", "choices": ["同程度の安全性を目指す場合、RSAより短い鍵長で利用できることが多い", "共通鍵暗号なので公開鍵証明書には利用できない", "ハッシュ関数を使わずに電子署名を実現する", "鍵交換には利用できるが署名には利用できない"], "answer": 0, "explanation": "ECCは同程度の安全性でRSAより短い鍵長を利用できる点が利点の一つである。"},
+  {"category": "暗号・PKI", "question": "OCSP Staplingの利点として最も適切なものはどれか。", "choices": ["サーバがCAから取得したOCSP応答をTLSハンドシェイクで提示し、クライアントの個別照会を減らす", "クライアントが証明書の秘密鍵をCAへ送信して失効状態を確認する", "DNSSECを用いて証明書チェーンを検証する", "CRLを証明書のSAN領域へ埋め込む"], "answer": 0, "explanation": "OCSP Staplingではサーバが有効なOCSP応答を添付し、クライアントからOCSPレスポンダへの照会を減らせる。"},
+  {"category": "暗号・PKI", "question": "ハッシュ関数の第二原像計算困難性に最も近い説明はどれか。", "choices": ["与えられたメッセージと同じハッシュ値を持つ別のメッセージを見つけることが困難である", "任意の2メッセージで同じハッシュ値になる組を見つけることが困難である", "ハッシュ値から元メッセージを求めることが困難である", "秘密鍵を知らずにMACを生成することが困難である"], "answer": 0, "explanation": "第二原像計算困難性は、特定の入力に対して同じハッシュ値を持つ別入力を探す難しさを指す。"},
+  {"category": "暗号・PKI", "question": "電子署名と暗号化の使い分けとして最も適切なものはどれか。", "choices": ["署名は真正性・完全性の確認、暗号化は機密性の確保に主に用いる", "署名は機密性、暗号化は否認防止に主に用いる", "署名は可用性、暗号化は監査証跡の保存に主に用いる", "署名と暗号化は同じ目的で使われ、鍵の方向のみ異なる"], "answer": 0, "explanation": "電子署名は真正性・完全性・否認防止に、暗号化は主に機密性に関係する。"},
+  {"category": "暗号・PKI", "question": "証明書チェーン検証で中間CA証明書の役割として最も適切なものはどれか。", "choices": ["サーバ証明書と信頼済みルートCAの間をつなぐ署名関係を形成する", "サーバの秘密鍵をクライアントへ配送する", "TLSのセッション鍵を長期保存する", "DNSのAレコードを署名する"], "answer": 0, "explanation": "中間CA証明書はルートCAとエンドエンティティ証明書の間で信頼の連鎖を構成する。"},
+  {"category": "暗号・PKI", "question": "TLS 1.3でエフェメラルDiffie-Hellman系の鍵共有を利用する利点として最も適切なものはどれか。", "choices": ["セッションごとに一時鍵を用いることで前方秘匿性を得やすい", "サーバ証明書を使わずにホスト名検証を行える", "TCPの再送制御が不要になる", "HTTPのCookieを暗号化できる"], "answer": 0, "explanation": "一時的なDH鍵をセッションごとに利用することで、長期鍵の後日漏えいから過去セッションを守りやすくなる。"},
+  {"category": "認証・アクセス制御", "question": "多要素認証で異なる要素の組合せに該当するものはどれか。", "choices": ["パスワードと指紋", "パスワードとPIN", "指紋と顔認証", "ICカードとUSBセキュリティキー"], "answer": 0, "explanation": "パスワードは知識要素、指紋は生体要素で異なる。ほかは同一カテゴリの要素同士である。"},
+  {"category": "認証・アクセス制御", "question": "RBACの説明として最も適切なものはどれか。", "choices": ["利用者へ役割を割り当て、役割に権限を対応付ける", "利用者と資源の属性を条件式で評価する", "資源所有者が任意にアクセス権を付与する", "機密ラベルとクリアランスの比較でアクセスを決める"], "answer": 0, "explanation": "RBACはRole-Based Access Controlで、役割を介して権限を管理する。"},
+  {"category": "認証・アクセス制御", "question": "ABACの利点として最も適切なものはどれか。", "choices": ["利用者・資源・環境などの属性を組み合わせた柔軟な判定ができる", "役割数を1つに固定して権限管理を単純化できる", "資源所有者の判断を使わずにMACと同じラベル方式へ統一できる", "パスワードを使わずに公開鍵暗号を自動導入できる"], "answer": 0, "explanation": "ABACは複数の属性や環境条件をポリシーで評価でき、細かなアクセス制御に向く。"},
+  {"category": "認証・アクセス制御", "question": "最小権限の原則に沿った運用として最も適切なものはどれか。", "choices": ["業務に必要な権限を必要な期間に限定して付与する", "業務変更後も既存権限を維持して手続を減らす", "一般利用者に管理者権限を付与して問い合わせを減らす", "複数担当者で管理者IDを共有する"], "answer": 0, "explanation": "最小権限は業務遂行に必要な最小限の権限を付与し、不要になれば削除する考え方である。"},
+  {"category": "認証・アクセス制御", "question": "FIDO2/WebAuthnがフィッシング耐性を高める理由として最も適切なものはどれか。", "choices": ["認証器がオリジンに紐づく公開鍵資格情報を使うため、偽サイトで同じ資格情報を利用しにくい", "パスワードをブラウザからサーバへ平文送信するため、入力先を確認しやすい", "認証コードを電子メールで送るため、URLの偽装に影響されにくい", "共通鍵を複数サイトで共有するため、認証器の登録回数を減らせる"], "answer": 0, "explanation": "WebAuthnはRP ID/オリジンに結び付いた公開鍵資格情報を使い、偽サイトへの資格情報転用を難しくする。"},
+  {"category": "認証・アクセス制御", "question": "SAMLを用いたWeb SSOでIdPの役割として最も適切なものはどれか。", "choices": ["利用者を認証し、認証結果を示すアサーションをSPへ提供する", "サービスの業務データを保持し、利用者へ直接返す", "DNS応答へ電子署名を付与する", "TLS証明書の失効状態を配信する"], "answer": 0, "explanation": "IdPはIdentity Providerとして認証を行い、SPへ認証情報をSAMLアサーションとして伝える。"},
+  {"category": "認証・アクセス制御", "question": "OAuth 2.0のscopeの役割として最も適切なものはどれか。", "choices": ["アクセストークンで許可する権限範囲を表現する", "利用者のパスワード強度を表現する", "TLSの暗号スイートを指定する", "認可サーバの公開鍵を格納する"], "answer": 0, "explanation": "scopeはアクセストークンに付与する権限の範囲を表すために用いられる。"},
+  {"category": "認証・アクセス制御", "question": "OAuth 2.0のrefresh tokenの用途として最も適切なものはどれか。", "choices": ["アクセストークンの期限切れ後などに、新しいアクセストークンを取得する", "利用者の本人確認結果をRPへ伝える", "APIレスポンスの完全性を検証する", "認可コードを暗号化してブラウザへ保存する"], "answer": 0, "explanation": "refresh tokenは認可サーバへ提示し、新しいアクセストークンを得るために使われる。"},
+  {"category": "認証・アクセス制御", "question": "JIT（Just-In-Time）特権付与の考え方として最も適切なものはどれか。", "choices": ["必要な作業時間に合わせて一時的に高い権限を付与し、終了後に戻す", "管理者権限を恒久的に全担当者へ付与する", "利用者の属性に関係なく同じ権限を割り当てる", "アクセスログを保存せずに特権操作の負荷を下げる"], "answer": 0, "explanation": "JITは特権を常設せず、必要な時間帯に限定して付与することで攻撃面を小さくする。"},
+  {"category": "認証・アクセス制御", "question": "PAM（Privileged Access Management）の機能として最も適切なものはどれか。", "choices": ["特権アカウントの資格情報管理や利用申請、操作記録などを統制する", "DNSレコードの署名鍵をローテーションする", "メール送信元ドメインをSPFで認証する", "Webアプリの入力値をHTMLエスケープする"], "answer": 0, "explanation": "PAMは特権アカウントの保護、貸出、承認、監査などを管理する仕組みである。"},
+  {"category": "ネットワーク", "question": "ARPスプーフィングによって起こり得る事象として最も適切なものはどれか。", "choices": ["偽のARP応答でIPアドレスとMACアドレスの対応を誤らせ、通信を攻撃者経由に誘導する", "DNSSECのDSレコードを書き換えて署名検証を無効にする", "TCPの送信元ポートを固定してSYN Cookieを無効にする", "BGPのAS_PATHを短縮して無線LANの認証を回避する"], "answer": 0, "explanation": "ARPスプーフィングでは偽ARP情報によりLAN内の通信を攻撃者へ向け、盗聴や改ざんにつなげる。"},
+  {"category": "ネットワーク", "question": "DHCP starvation攻撃の狙いとして最も適切なものはどれか。", "choices": ["多数のDHCP要求でアドレスプールを消費し、正規端末への割当てを妨げる", "ARPキャッシュを大量生成してルータの経路表を枯渇させる", "DNSキャッシュを無効化して名前解決を遅延させる", "TCP接続を半開きにしてWebサーバの接続キューを消費する"], "answer": 0, "explanation": "DHCP starvationは大量の偽クライアント要求でDHCPアドレスプールを枯渇させる攻撃である。"},
+  {"category": "ネットワーク", "question": "不正なDHCPサーバがLAN内で稼働した場合に生じ得るリスクとして最も適切なものはどれか。", "choices": ["攻撃者がデフォルトゲートウェイやDNSサーバの設定を配布し、通信を誘導する", "サーバ証明書の秘密鍵がDHCP応答から復元される", "BGPのAS番号が自動的に変更される", "802.1XのEAP方式がDHCPによって置き換えられる"], "answer": 0, "explanation": "Rogue DHCPは偽のネットワーク設定を配布してMITMやDNS誘導につなげることがある。"},
+  {"category": "ネットワーク", "question": "BGPハイジャックの説明として最も適切なものはどれか。", "choices": ["誤ったプレフィックス経路をBGPで広告し、通信を意図しないASへ誘導する", "LAN内で偽ARP応答を送り、デフォルトゲートウェイを偽装する", "DHCPアドレスプールを消費して端末の接続を妨げる", "DNS応答のトランザクションIDを推測してキャッシュを書き換える"], "answer": 0, "explanation": "BGPハイジャックは不正・誤設定の経路広告によりインターネット経路を誤誘導する事象である。"},
+  {"category": "ネットワーク", "question": "DNSの再帰問い合わせを受け付けるキャッシュDNSサーバを外部公開するリスクとして最も適切なものはどれか。", "choices": ["オープンリゾルバとして増幅型DDoSの反射元に悪用される可能性がある", "TLS証明書の秘密鍵がDNSキャッシュへ保存される", "TCPの輻輳制御がDNSによって無効になる", "ARPテーブルの更新がDNS応答に連動する"], "answer": 0, "explanation": "外部から再帰問い合わせ可能なオープンリゾルバはDNSリフレクション/アンプ攻撃に悪用され得る。"},
+  {"category": "ネットワーク", "question": "CAAレコードの用途として最も適切なものはどれか。", "choices": ["そのドメインについて証明書を発行してよいCAをDNS上で示す", "メールを受信するSMTPサーバを指定する", "DNSSECのRRset署名を格納する", "IPv6アドレスをホスト名へ対応付ける"], "answer": 0, "explanation": "CAAはCertification Authority Authorizationで、証明書発行を許可するCAを示すDNSレコードである。"},
+  {"category": "ネットワーク", "question": "SYN Cookieの目的として最も適切なものはどれか。", "choices": ["SYN受信時に接続状態の保持を抑え、SYN Floodによる資源消費を軽減する", "SYNパケットを暗号化し、盗聴を防ぐ", "TCPシーケンス番号を固定し、再送処理を簡素化する", "UDP通信へ変換して3ウェイハンドシェイクを省略する"], "answer": 0, "explanation": "SYN CookieはSYN受信時の状態保持を避け、ACK到着後に状態を復元してSYN Flood耐性を高める。"},
+  {"category": "ネットワーク", "question": "UDPを利用するサービスがリフレクタ攻撃に悪用されやすい理由として最も適切なものはどれか。", "choices": ["送信元IPアドレスを偽装した要求でも応答が返り得るため、応答先を標的へ向けられる", "UDPでは宛先ポート番号を指定しないため、任意のサービスへ配送される", "UDPパケットにはIPヘッダが無いため、送信元を追跡できない", "UDPでは応答データを暗号化できないため、通信量が増幅する"], "answer": 0, "explanation": "UDPは接続確立を伴わず、送信元IP偽装と反射を組み合わせやすい。"},
+  {"category": "ネットワーク", "question": "IPsec NAT-Tの動作として最も適切なものはどれか。", "choices": ["ESPをUDPでカプセル化し、NAT装置が変換状態を扱いやすくする", "AHの認証対象からIPヘッダを外し、NAT変換を許容する", "ESPをTCP/443へ変換し、HTTPSとして中継する", "IKEをDNSへ置き換えてNAT装置を通過する"], "answer": 0, "explanation": "NAT-Tは主にESPをUDP/4500でカプセル化し、NAT環境でIPsecを利用しやすくする。"},
+  {"category": "ネットワーク", "question": "IPv6 SLAACでルータ広告（RA）が果たす役割として最も適切なものはどれか。", "choices": ["端末へプレフィックスなどを通知し、IPv6アドレスの自動設定を支援する", "端末へTCPポート番号を割り当てる", "DNSSECの信頼アンカーを配布する", "MACアドレスをIPv4アドレスへ変換する"], "answer": 0, "explanation": "RAはIPv6ルータがネットワークプレフィックス等を通知し、SLAACによるアドレス設定を支援する。"},
+  {"category": "ネットワーク", "question": "IEEE 802.1Xにおけるオーセンティケータの役割として最も適切なものはどれか。", "choices": ["端末と認証サーバの間でEAPメッセージを中継し、認証結果に応じてポート利用を制御する", "利用者の資格情報を発行して端末へ保存する", "DNS問い合わせをRADIUSへ変換する", "TLS証明書を発行して無線LAN端末へ配布する"], "answer": 0, "explanation": "スイッチやAPがオーセンティケータとなり、サプリカントと認証サーバ間の認証を仲介する。"},
+  {"category": "ネットワーク", "question": "RADIUSの利用例として最も適切なものはどれか。", "choices": ["ネットワークアクセス認証で、認証・認可・アカウンティング情報を集中管理する", "WebアプリのセッションCookieを暗号化する", "DNSSECの鍵署名鍵を保管する", "HTTPレスポンスのCSPを生成する"], "answer": 0, "explanation": "RADIUSはAAAを提供し、802.1XやVPNなどのネットワーク認証で広く用いられる。"},
+  {"category": "ネットワーク", "question": "リバースプロキシをWebサーバ前段に置く目的として最も適切なものはどれか。", "choices": ["外部からの要求を受けて内部Webサーバへ中継し、TLS終端や負荷分散などを行う", "クライアント端末の代わりに外部Webサイトへアクセスし、閲覧制御を行う", "ルータ間で最短経路を交換する", "DNS問い合わせを再帰的に解決する"], "answer": 0, "explanation": "リバースプロキシはサーバ側の代理として前段に置かれ、負荷分散やTLS終端、アクセス制御などに使われる。"},
+  {"category": "ネットワーク", "question": "IDSとIPSの違いとして最も適切なものはどれか。", "choices": ["IPSは通信経路上で検知した通信を遮断する構成を取り得るのに対し、IDSは監視・通知を中心とする", "IDSは暗号化通信を復号し、IPSは復号を行わない", "IDSはホストで利用し、IPSはネットワークで利用する方式に限られる", "IDSはシグネチャ方式、IPSは振る舞い方式を用いる"], "answer": 0, "explanation": "IPSはインラインで遮断する機能を持つことが多く、IDSは検知と通知が中心である。"},
+  {"category": "ネットワーク", "question": "TLSのSNI（Server Name Indication）の用途として最も適切なものはどれか。", "choices": ["クライアントが接続したいホスト名をTLSハンドシェイクで示し、同一IP上の複数サイトを扱いやすくする", "TLSセッション鍵をDNSサーバへ通知する", "HTTP CookieのSameSite属性をネゴシエーションする", "証明書の失効情報をCAへ照会する"], "answer": 0, "explanation": "SNIはTLS接続時に対象ホスト名を知らせ、仮想ホストごとに適切な証明書を選択できるようにする。"},
+  {"category": "ネットワーク", "question": "HTTP/3で利用されるQUICの特徴として最も適切なものはどれか。", "choices": ["UDP上で暗号化や多重化などを実現し、接続確立遅延の低減を図る", "TCP上でHTTP/1.1を多重化する", "ICMP上でWebデータを転送する", "IPsec AHを利用してHTTPヘッダを認証する"], "answer": 0, "explanation": "HTTP/3はQUICを利用し、QUICはUDP上でTLS 1.3相当の暗号化やストリーム多重化を提供する。"},
+  {"category": "Webセキュリティ", "question": "Stored XSSの特徴として最も適切なものはどれか。", "choices": ["攻撃用スクリプトがサーバ側に保存され、閲覧者へ配信されて実行される", "攻撃用URLを開いた利用者のブラウザ内でDOM操作が発生する", "SQL文へ入力値が連結されてDBの内容が変更される", "外部URL取得機能から内部サーバへ要求が送られる"], "answer": 0, "explanation": "Stored XSSは掲示板投稿などに悪性スクリプトが保存され、他利用者の閲覧時に実行される。"},
+  {"category": "Webセキュリティ", "question": "DOM Based XSSの説明として最も適切なものはどれか。", "choices": ["クライアント側JavaScriptが危険な方法でDOMへ値を挿入し、ブラウザ内でスクリプト実行につながる", "サーバがSQL文を動的生成し、DBへ不正クエリが送られる", "HTTPリクエストを外部サーバが中継し、DNS応答を書き換える", "セッションIDをログイン前後で固定して認証後のセッションを奪う"], "answer": 0, "explanation": "DOM Based XSSはブラウザ側のJavaScript処理により、危険なsourceからsinkへデータが流れて発生する。"},
+  {"category": "Webセキュリティ", "question": "CSRF対策でCSRFトークンを利用する理由として最も適切なものはどれか。", "choices": ["正規画面で発行された推測困難な値を要求に含め、第三者サイトからの偽要求を判別しやすくする", "HTMLタグを無害化してスクリプト実行を防ぐ", "SQL構文と入力値を分離する", "Cookieの内容を公開鍵暗号で暗号化する"], "answer": 0, "explanation": "CSRFトークンは攻撃者が取得しにくい値を要求に含め、正規操作由来かを検証する。"},
+  {"category": "Webセキュリティ", "question": "SameSite=Laxの挙動として最も適切なものはどれか。", "choices": ["クロスサイト状況でCookie送信を制限しつつ、トップレベルの安全なナビゲーションでは送信される場合がある", "クロスサイト状況でCookie送信を常に許可し、Secure属性を無視する", "JavaScriptからのCookie参照を制限する", "Cookieを暗号化して保存する"], "answer": 0, "explanation": "LaxはStrictより緩く、一部のトップレベルナビゲーションでCookie送信を許容する。"},
+  {"category": "Webセキュリティ", "question": "CSPでnonceを利用する場合の設計として最も適切なものはどれか。", "choices": ["レスポンスごとに推測困難なnonceを生成し、許可するscript要素とCSPヘッダで一致させる", "固定nonceを複数ページで長期間共有し、キャッシュ効率を高める", "nonceをCookieへ保存し、JavaScriptから読み出してscript要素へ設定する", "nonceをパスワードハッシュとしてDBへ保存する"], "answer": 0, "explanation": "CSP nonceはレスポンスごとにランダム生成し、許可するインラインスクリプトへ付与するのが基本である。"},
+  {"category": "Webセキュリティ", "question": "CORSのpreflight requestが送信される場面として最も適切なものはどれか。", "choices": ["ブラウザが実際のクロスオリジン要求の前にOPTIONSで許可条件を確認する場面", "サーバ証明書を検証する前にOCSP応答を取得する場面", "WebSocketのフレームをTCPへ変換する場面", "Cookieの有効期限を延長する場面"], "answer": 0, "explanation": "単純リクエストに該当しないクロスオリジン要求では、OPTIONSによるpreflightで許可可否を確認する。"},
+  {"category": "Webセキュリティ", "question": "Second-order SQL Injectionの説明として最も適切なものはどれか。", "choices": ["保存時には問題が表面化せず、後の処理で保存済み入力がSQLへ組み込まれて攻撃が成立する", "同じSQL文を2回実行してDBロックを競合させる", "SQL文とHTTPヘッダの両方へ同じ文字列を挿入する", "2種類のDBMSへ同時に攻撃クエリを送る"], "answer": 0, "explanation": "Second-order SQLiは悪性入力が一度保存され、後の別処理でSQL構文として使われて発現する。"},
+  {"category": "Webセキュリティ", "question": "OSコマンドインジェクション対策として最も適切なものはどれか。", "choices": ["シェルを介さずに実行可能なAPIを使い、実行ファイルと引数を分離して渡す", "入力値をHTMLエスケープしてからシェルへ渡す", "SQLプレースホルダをコマンドラインへ適用する", "CookieへHttpOnly属性を設定する"], "answer": 0, "explanation": "根本的にはシェル解釈を避け、引数を構造化して渡すAPIを使うことが有効である。"},
+  {"category": "Webセキュリティ", "question": "ディレクトリトラバーサル対策でパス正規化後の検証が重要な理由として最も適切なものはどれか。", "choices": ["符号化や相対パス表現を解釈した後の実際の参照先が許可範囲内か確認する必要がある", "パス正規化によってTLS証明書のSANが更新される", "正規化するとSQLプレースホルダが利用可能になる", "正規化後はファイル権限の設定が不要になる"], "answer": 0, "explanation": "../やエンコード表現などを解決した実パスが許可ディレクトリ内にあるかを確認することが重要である。"},
+  {"category": "Webセキュリティ", "question": "ファイルアップロード機能の安全性を高める方法として最も適切なものはどれか。", "choices": ["許可する形式を検証し、Web公開領域から分離して保存し、実行権限を与えない", "拡張子を利用者が指定したまま保存し、Content-Typeを確認する", "アップロード先でスクリプト実行を許可し、ウイルス対策ソフトに判断を委ねる", "元のファイル名をURLへ直接反映して利便性を高める"], "answer": 0, "explanation": "形式検証、保存場所分離、ランダム名、実行権限抑制などを組み合わせるのが有効である。"},
+  {"category": "Webセキュリティ", "question": "クラウド環境でSSRFが特に問題となる理由として最も適切なものはどれか。", "choices": ["アプリからメタデータサービスなど内部向けエンドポイントへアクセスされ、資格情報が取得される場合がある", "SSRFによりブラウザのSame-Origin Policyが無効になる", "SSRFによりTLSの公開鍵が秘密鍵へ変換される", "SSRFはDNSSECの署名検証を直接回避する"], "answer": 0, "explanation": "SSRFからクラウドメタデータサービスへ到達すると、一時資格情報などの漏えいにつながることがある。"},
+  {"category": "Webセキュリティ", "question": "XXE（XML External Entity）攻撃で起こり得る事象として最も適切なものはどれか。", "choices": ["外部エンティティ参照を悪用してローカルファイル参照や内部ネットワークへのアクセスが発生する", "CookieのSameSite属性が書き換えられる", "SQLのトランザクション分離レベルが低下する", "TLS証明書チェーンが短縮される"], "answer": 0, "explanation": "脆弱なXMLパーサで外部エンティティを有効にすると、ファイル読み取りやSSRF等につながる。"},
+  {"category": "Webセキュリティ", "question": "安全でないデシリアライズのリスクとして最も適切なものはどれか。", "choices": ["細工したシリアライズデータを復元する過程で意図しない処理やコード実行が発生する場合がある", "HTTPレスポンスが圧縮されず通信量が増える", "DNSキャッシュのTTLが短くなる", "データベースのインデックスが無効になる"], "answer": 0, "explanation": "一部のシリアライズ形式やライブラリでは、攻撃者入力のデシリアライズがコード実行等につながる。"},
+  {"category": "Webセキュリティ", "question": "Open Redirectのリスクとして最も適切なものはどれか。", "choices": ["正規ドメインのURLを踏ませた後に攻撃サイトへ転送し、フィッシングに悪用される場合がある", "Webサーバのファイルシステムを相対パスで探索できる", "SQL文のWHERE条件を変更できる", "TLS通信の暗号方式を弱い方式へ変更できる"], "answer": 0, "explanation": "オープンリダイレクトは信頼されるドメインを入口に攻撃先へ転送する手口に利用される。"},
+  {"category": "Webセキュリティ", "question": "クリックジャッキング対策として利用できるHTTPヘッダ又はCSPディレクティブはどれか。", "choices": ["X-Frame-Options または CSP frame-ancestors", "Strict-Transport-Security または Expect-CT", "Access-Control-Allow-Origin または Vary", "ETag または Last-Modified"], "answer": 0, "explanation": "フレームへの埋め込みを制御するX-Frame-OptionsやCSP frame-ancestorsがクリックジャッキング対策に用いられる。"},
+  {"category": "Webセキュリティ", "question": "HSTSの役割として最も適切なものはどれか。", "choices": ["ブラウザに一定期間HTTPSでの接続を求め、HTTPへのダウングレードを抑制する", "WebページのJavaScript実行元を制限する", "Cookieのクロスサイト送信を制御する", "CORSの許可オリジンを指定する"], "answer": 0, "explanation": "HSTSはStrict-Transport-SecurityヘッダでHTTPS利用を強制し、SSL stripping等への耐性を高める。"},
+  {"category": "Webセキュリティ", "question": "IDOR/BOLAの説明として最も適切なものはどれか。", "choices": ["利用者が指定したオブジェクト識別子に対する認可確認が不十分で、他者の資源へアクセスできる", "SQLの列名を利用者入力から直接組み立てる", "外部URL取得機能から内部サーバへ接続する", "セッションIDをログイン前後で再利用する"], "answer": 0, "explanation": "IDOR/BOLAはオブジェクト単位の認可不足で、他ユーザのデータへアクセスできる問題を指す。"},
+  {"category": "Webセキュリティ", "question": "Mass Assignment脆弱性の説明として最も適切なものはどれか。", "choices": ["受信したパラメータをオブジェクトの属性へ広く自動設定し、想定外の権限属性などまで変更される", "大量のHTTP要求でCPU資源を消費する", "複数パスワードを同じアカウントへ高速試行する", "複数のSQL文を1トランザクションとして実行する"], "answer": 0, "explanation": "Mass Assignmentでは許可していない属性まで入力から更新され、isAdmin等が不正変更されることがある。"},
+  {"category": "マルウェア・インシデント", "question": "ランサムウェア感染時の初動で、被害拡大抑制の観点から検討する対応として最も適切なものはどれか。", "choices": ["感染端末をネットワークから隔離し、証拠保全と影響範囲確認を進める", "感染端末を業務ネットワークへ接続したまま挙動を観察する", "共有ストレージへのアクセス権を広げて復旧を容易にする", "バックアップ媒体を感染端末へ接続して復元を開始する"], "answer": 0, "explanation": "感染拡大を抑えるため隔離しつつ、証拠保全とスコープ確認を行う。復旧は安全性を確認した後に進める。"},
+  {"category": "マルウェア・インシデント", "question": "Rootkitの目的として最も適切なものはどれか。", "choices": ["侵入後の存在や活動を隠蔽し、攻撃者のアクセスを維持する", "バックアップの世代管理を自動化する", "パスワードハッシュへソルトを付加する", "ネットワーク経路を短縮して遅延を下げる"], "answer": 0, "explanation": "RootkitはOS等へ深く入り込み、プロセスやファイル、接続などを隠すために使われる。"},
+  {"category": "マルウェア・インシデント", "question": "EDRの主な役割として最も適切なものはどれか。", "choices": ["エンドポイントの挙動を収集・分析し、不審活動の検知や調査・対応を支援する", "メールの送信元ドメインをDNSで認証する", "ルータ間の経路を交換する", "データベースの正規化を支援する"], "answer": 0, "explanation": "EDRはEndpoint Detection and Responseで、端末上のテレメトリを用いた検知・調査・封じ込めを支援する。"},
+  {"category": "マルウェア・インシデント", "question": "マルウェア解析でサンドボックスを利用する目的として最も適切なものはどれか。", "choices": ["隔離された環境で検体を実行し、ファイル・レジストリ・通信などの挙動を観察する", "検体のハッシュ値を暗号鍵へ変換する", "感染端末のOSを本番環境へ複製する", "CVE番号を自動発行する"], "answer": 0, "explanation": "サンドボックスでは影響を限定した環境で動的解析し、マルウェアの挙動を観察する。"},
+  {"category": "マルウェア・インシデント", "question": "IOCとIOAの違いとして最も適切なものはどれか。", "choices": ["IOCは侵害の痕跡、IOAは攻撃者の行動や手法を示す兆候に重点を置く", "IOCは将来予測、IOAは過去ログの保存期間を表す", "IOCは暗号鍵、IOAは公開鍵証明書を表す", "IOCはネットワーク機器向け、IOAは端末向けに限定される"], "answer": 0, "explanation": "IOCはハッシュやIP等の侵害指標、IOAは攻撃行動のパターンや意図を捉える考え方である。"},
+  {"category": "マルウェア・インシデント", "question": "デジタルフォレンジックスにおけるChain of Custodyの目的として最も適切なものはどれか。", "choices": ["証拠の取得・保管・受渡しの履歴を記録し、証拠の同一性と取扱いを説明可能にする", "暗号鍵の生成履歴をCAへ登録する", "インシデントの優先順位をCVSS値から決める", "ネットワーク経路の変更履歴をBGPで配布する"], "answer": 0, "explanation": "Chain of Custodyは証拠が誰によりどう扱われたかを記録し、証拠性を支える。"},
+  {"category": "マルウェア・インシデント", "question": "揮発性の高い情報を優先して取得する考え方として最も適切なものはどれか。", "choices": ["RAM上のプロセス・接続・鍵など、電源断で失われやすい情報から検討する", "ディスクイメージ取得後にRAM取得を検討する", "外部公開情報から順に取得する", "バックアップ媒体の内容から順に取得する"], "answer": 0, "explanation": "Order of Volatilityの考え方では、消失しやすい情報ほど優先度を上げて取得する。"},
+  {"category": "マルウェア・インシデント", "question": "インシデント対応でContainmentに当たる活動として最も適切なものはどれか。", "choices": ["感染端末の隔離や不正アカウント停止によって被害拡大を抑える", "原因となったマルウェアを除去して脆弱性を修正する", "サービスを通常運用へ戻して監視を継続する", "対応後の教訓を手順書へ反映する"], "answer": 0, "explanation": "Containmentは封じ込め。Eradicationは根絶、Recoveryは復旧に対応する。"},
+  {"category": "マルウェア・インシデント", "question": "SIEMで相関分析を行う例として最も適切なものはどれか。", "choices": ["VPNログイン成功の直後に同一利用者で多数の特権操作が発生した事象を複数ログから関連付ける", "単一PCのCPU温度を一定間隔で測定する", "WebページのHTMLを自動整形する", "DBのテーブルを第3正規形へ変換する"], "answer": 0, "explanation": "SIEMは複数ソースのログを集約し、時系列や主体などを関連付けて検知に活用する。"},
+  {"category": "マルウェア・インシデント", "question": "SOARの利用目的として最も適切なものはどれか。", "choices": ["アラート調査や封じ込めなどの定型対応をワークフロー化し、自動化・連携を支援する", "公開鍵証明書のチェーンを検証する", "DBのロック競合を解消する", "OSPFの経路計算を高速化する"], "answer": 0, "explanation": "SOARはSecurity Orchestration, Automation and Responseで、対応手順の自動化や各種ツール連携を行う。"},
+  {"category": "DB", "question": "ACID特性のAtomicityに最も近い説明はどれか。", "choices": ["トランザクションの処理が全体として完了するか、途中の更新が取り消される", "同時実行しても互いの途中結果が見えない", "コミット後の結果が障害後も保持される", "制約を満たす状態から別の整合した状態へ遷移する"], "answer": 0, "explanation": "Atomicityは原子性で、トランザクションを不可分な単位として扱う。"},
+  {"category": "DB", "question": "ファントムリードの説明として最も適切なものはどれか。", "choices": ["同じ検索条件を再実行したとき、別トランザクションの挿入・削除によって行集合が変化する", "未コミットの更新値を読み取る", "同じ行を再読したとき値が変化する", "2つの更新が互いを上書きして一方が失われる"], "answer": 0, "explanation": "ファントムリードは条件検索の結果集合に新しい行が現れたり消えたりする現象である。"},
+  {"category": "DB", "question": "Two-Phase Locking（2PL）の考え方として最も適切なものはどれか。", "choices": ["ロックを獲得する段階と解放する段階を分け、直列化可能性を確保する", "読取り処理ではロックを使わず、書込み時に暗号化する", "トランザクションを2台のDBサーバへ複製する", "コミット前後でSQL文を2回実行する"], "answer": 0, "explanation": "2PLはロック獲得の成長相と解放の縮退相を分けることで、競合実行の直列化可能性を支える。"},
+  {"category": "DB", "question": "B-tree系インデックスが適している検索として最も適切なものはどれか。", "choices": ["キーの範囲検索や大小比較を伴う検索", "画像内容の意味的類似検索", "暗号学的ハッシュの衝突検出", "全文の形態素解析に基づく検索"], "answer": 0, "explanation": "B-treeはキー順序を保つため、等価検索に加え範囲検索やソートに向く。"},
+  {"category": "DB", "question": "第3正規形を目指す主な目的として最も適切なものはどれか。", "choices": ["データの重複や更新時不整合を抑えるため、関数従属性に基づいて表を分割する", "全テーブルを1表へ統合しJOINを不要にする", "暗号鍵をDB外へ移動する", "検索結果をキャッシュして応答時間を短縮する"], "answer": 0, "explanation": "正規化は重複や更新異常を減らし、データ整合性を保ちやすくする。"},
+  {"category": "DB", "question": "ポイントインタイムリカバリ（PITR）に必要となる情報の組合せとして最も適切なものはどれか。", "choices": ["基準となるバックアップと、その後の更新ログ", "最新の差分バックアップ1個", "DBのER図とSQL定義書", "インデックスを保存したファイル"], "answer": 0, "explanation": "PITRはバックアップへ更新ログを適用して、指定時点まで復旧する方式である。"},
+  {"category": "DB", "question": "DBレプリケーションをバックアップの代替として扱う際の問題点として最も適切なものはどれか。", "choices": ["誤削除や論理破壊がレプリカ側へも反映される場合があり、過去時点への復旧手段とは性質が異なる", "レプリケーションでは読取り処理を実行できない", "レプリケーションを使うとトランザクションログを生成できない", "レプリカは主系と異なるDBMSでなければ構成できない"], "answer": 0, "explanation": "複製は可用性向上に役立つが、誤操作やランサムウェア等も反映され得るためバックアップとは役割が異なる。"},
+  {"category": "開発・脆弱性", "question": "STRIDEでSpoofingに該当する脅威として最も適切なものはどれか。", "choices": ["他者になりすましてシステムへアクセスする", "通信内容を改ざんする", "操作を行った事実を否認する", "サービス資源を枯渇させる"], "answer": 0, "explanation": "STRIDEのSはSpoofingで、主体のなりすましを表す。"},
+  {"category": "開発・脆弱性", "question": "入力検証と出力エンコーディングの関係として最も適切なものはどれか。", "choices": ["入力検証は期待する形式を確認し、出力エンコーディングは表示先の文脈でデータを安全に扱う", "入力検証はHTML向け、出力エンコーディングはSQL向けに用いる", "入力検証を行えば出力エンコーディングは不要になる", "出力エンコーディングはDBのトランザクション制御に用いる"], "answer": 0, "explanation": "入力検証と出力時対策は役割が異なり、XSS対策などでは出力文脈に応じたエンコードが重要である。"},
+  {"category": "開発・脆弱性", "question": "SCA（Software Composition Analysis）の主な用途として最も適切なものはどれか。", "choices": ["利用しているOSSやライブラリを把握し、既知脆弱性やライセンスを確認する", "実行中アプリへ外部から攻撃リクエストを送る", "ソースコードの制御フローを静的解析する", "ネットワークパケットをキャプチャしてマルウェアを検出する"], "answer": 0, "explanation": "SCAは依存コンポーネントを特定し、脆弱性やライセンス問題を管理するために利用される。"},
+  {"category": "開発・脆弱性", "question": "SBOMとVEXの関係として最も適切なものはどれか。", "choices": ["SBOMで構成要素を把握し、VEXで既知脆弱性が製品へ与える影響状態などを伝達する", "SBOMで脆弱性の深刻度を計算し、VEXでCVE番号を発行する", "SBOMでソースコードを署名し、VEXで秘密鍵を配布する", "SBOMでネットワーク構成を表し、VEXでルーティングを制御する"], "answer": 0, "explanation": "SBOMは構成部品の一覧、VEXは脆弱性の影響有無や対応状態などを伝える。"},
+  {"category": "開発・脆弱性", "question": "CVE・CWE・CVSSの組合せとして最も適切なものはどれか。", "choices": ["CVEは個別脆弱性識別、CWEは弱点分類、CVSSは深刻度評価", "CVEは弱点分類、CWEは深刻度評価、CVSSは個別識別", "CVEは深刻度評価、CWEは個別識別、CVSSは弱点分類", "CVEは暗号方式分類、CWEはマルウェア分類、CVSSは認証方式分類"], "answer": 0, "explanation": "CVE=個別脆弱性ID、CWE=弱点カテゴリ、CVSS=脆弱性深刻度評価。"},
+  {"category": "開発・脆弱性", "question": "カバレッジガイド型ファジングの特徴として最も適切なものはどれか。", "choices": ["実行経路のカバレッジ情報を利用して、新しい経路へ到達しやすい入力を探索する", "要件定義書の網羅率を測定してテストケース数を決める", "DBインデックスのヒット率を見て入力を変化させる", "CPU使用率を一定に保つように入力を生成する"], "answer": 0, "explanation": "Coverage-guided fuzzingは実行時カバレッジをフィードバックし、新しいコード経路を探索する。"},
+  {"category": "開発・脆弱性", "question": "コード署名をソフトウェア配布に用いる目的として最も適切なものはどれか。", "choices": ["配布物の発行元と改ざんの有無を受信側で確認できるようにする", "実行ファイルの内容を第三者から読めなくする", "プログラムの脆弱性を自動修正する", "ライセンス違反を自動検出する"], "answer": 0, "explanation": "コード署名はソフトウェアの真正性・完全性確認に利用される。"},
+  {"category": "開発・脆弱性", "question": "CI/CD環境でAPIキーなどの秘密情報を扱う方法として最も適切なものはどれか。", "choices": ["ソースコードへ埋め込まず、シークレット管理機能から実行時に注入する", "リポジトリへ暗号化せず保存し、アクセス権で保護する", "ビルドログへ出力して監査可能性を高める", "コンテナイメージへ固定値として組み込む"], "answer": 0, "explanation": "秘密情報はコードやイメージへ固定せず、Vault等のシークレット管理から必要時に提供するのが望ましい。"},
+  {"category": "サービス管理・BCP", "question": "RTOとRPOの違いとして最も適切なものはどれか。", "choices": ["RTOは復旧までの目標時間、RPOは許容するデータ損失の時点を示す", "RTOは許容データ損失、RPOは復旧所要時間を示す", "RTOは年間稼働率、RPOは平均故障間隔を示す", "RTOは障害検知時間、RPOは障害報告時間を示す"], "answer": 0, "explanation": "RTOはRecovery Time Objective、RPOはRecovery Point Objectiveである。"},
+  {"category": "サービス管理・BCP", "question": "ウォームサイトの特徴として最も適切なものはどれか。", "choices": ["設備や一部システムを準備し、ホットサイトより復旧に時間を要する一方、コールドサイトより短時間で再開しやすい", "本番環境と同時稼働し、常時同期された完全な代替環境として運用する", "施設のみ確保し、機器や回線を用意しない", "バックアップデータを保管する用途に限定した外部媒体である"], "answer": 0, "explanation": "ウォームサイトはホットとコールドの中間的な復旧拠点で、一定の設備を事前準備する。"},
+  {"category": "サービス管理・BCP", "question": "インシデント管理で優先度を決める際に用いられる考え方として最も適切なものはどれか。", "choices": ["影響度と緊急度を組み合わせて優先度を判断する", "CVSS基本値をそのまま優先度へ変換する", "担当者の勤続年数で処理順を決める", "発生時刻が新しいものから処理する"], "answer": 0, "explanation": "ITサービス管理では影響度と緊急度を組み合わせ、インシデントの優先度を決める考え方が一般的である。"},
+  {"category": "サービス管理・BCP", "question": "変更管理の目的として最も適切なものはどれか。", "choices": ["変更によるリスクを評価し、承認・計画・実施・レビューを統制する", "障害原因を分析して恒久対策を決定する", "ユーザからの問い合わせを一次受付する", "サービス性能の長期需要を予測する"], "answer": 0, "explanation": "変更管理は変更を統制し、サービスへの悪影響を抑えながら実施するためのプロセスである。"},
+  {"category": "サービス管理・BCP", "question": "構成管理データベース（CMDB）の用途として最も適切なものはどれか。", "choices": ["構成アイテムとその属性・関係を管理し、変更や障害影響の把握に利用する", "利用者パスワードのハッシュ値を保管する", "監査証拠を法的に保管する", "DNSゾーン情報を管理する"], "answer": 0, "explanation": "CMDBはCIとその関係を管理し、サービス構成の把握に役立てる。"},
+  {"category": "サービス管理・BCP", "question": "サービスレベル管理でSLAに定める内容として最も適切なものはどれか。", "choices": ["可用性や応答時間など、提供サービスの合意した目標水準", "ソースコードの暗号化方式", "監査人の人事評価基準", "ルータのOSPFコスト値"], "answer": 0, "explanation": "SLAはサービス提供者と顧客の間で可用性や応答時間等のサービス水準を合意する。"},
+  {"category": "システム・可用性", "question": "直列に依存する2つの装置A、Bがあり、Aの稼働率0.99、Bの稼働率0.98で、両方が稼働してサービス提供できる。全体の稼働率はどれか。", "choices": ["0.9702", "0.9850", "0.9900", "0.9998"], "answer": 0, "explanation": "直列系では両方が稼働する必要があるので、0.99×0.98=0.9702。"},
+  {"category": "システム・可用性", "question": "RAID 1の特徴として最も適切なものはどれか。", "choices": ["同じデータを複数ディスクへ複製し、1台の故障に耐えられる構成を取りやすい", "パリティを分散して3台以上のディスク容量を効率利用する", "データをストライピングして冗長性を持たない", "複数ディスクを連結して単一大容量ボリュームに見せる"], "answer": 0, "explanation": "RAID 1はミラーリングで、同一データを複製して冗長性を確保する。"},
+  {"category": "システム・可用性", "question": "MTBFが900時間、MTTRが100時間のシステムの定常稼働率として最も近いものはどれか。", "choices": ["90%", "10%", "81%", "99%"], "answer": 0, "explanation": "稼働率=MTBF/(MTBF+MTTR)=900/1000=0.9で90%。"}
+];
+
+function loadCustom(){
+  try { return JSON.parse(localStorage.getItem("scA2CustomBank")||"[]"); }
+  catch(e){ return []; }
+}
+let customBank = loadCustom();
+let bank = [...baseBank, ...customBank];
+
+const $ = s => document.querySelector(s);
+const start = $("#start"), quiz = $("#quiz"), result = $("#result");
+const countSel = $("#count"), modeSel = $("#mode");
+const categoryChips = $("#categoryChips");
+
+let session = [];
+let idx = 0;
+let answers = [];
+let immediate = true;
+
+const labels = ["ア","イ","ウ","エ"];
+
+function uniqCategories(){
+  return [...new Set(bank.map(q=>q.category))];
+}
+function renderCategories(){
+  categoryChips.innerHTML="";
+  uniqCategories().forEach(c=>{
+    const lab=document.createElement("label");
+    lab.className="chip";
+    const cb=document.createElement("input");
+    cb.type="checkbox"; cb.checked=true; cb.value=c;
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(c));
+    categoryChips.appendChild(lab);
+  });
+  $("#bankCount").textContent=bank.length;
+}
+renderCategories();
+
+function selectedCategories(){
+  return [...categoryChips.querySelectorAll("input:checked")].map(x=>x.value);
+}
+function shuffle(a){
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [b[i],b[j]]=[b[j],b[i]];
+  }
+  return b;
+}
+function prepareQuestion(q){
+  const order = shuffle([0,1,2,3]);
+  const choices = order.map(i=>q.choices[i]);
+  const answer = order.indexOf(q.answer);
+  return {...q,choices,answer};
+}
+function show(el){el.classList.remove("hidden")}
+function hide(el){el.classList.add("hidden")}
+
+$("#startBtn").addEventListener("click",()=>{
+  const cats=selectedCategories();
+  let pool=bank.filter(q=>cats.includes(q.category));
+  const n=Math.min(+countSel.value,pool.length);
+  if(!n){alert("出題分野を1つ以上選択してください。");return;}
+  session=shuffle(pool).slice(0,n).map(prepareQuestion);
+  begin();
+});
+
+$("#wrongBtn").addEventListener("click",()=>{
+  const ids = JSON.parse(localStorage.getItem("scA2WrongQuestions")||"[]");
+  let pool = bank.filter(q=>ids.includes(q.question));
+  if(!pool.length){alert("復習できる誤答履歴がありません。");return;}
+  session=shuffle(pool).map(prepareQuestion);
+  begin();
+});
+
+function begin(){
+  idx=0; answers=[]; immediate=modeSel.value==="immediate";
+  hide(start); hide(result); show(quiz);
+  renderQuestion();
+}
+function renderQuestion(){
+  const q=session[idx];
+  $("#qno").textContent=`問題 ${idx+1} / ${session.length}`;
+  $("#cat").textContent=q.category;
+  $("#bar").style.width=`${(idx/session.length)*100}%`;
+  $("#question").textContent=q.question;
+  $("#feedback").className="feedback hidden";
+  $("#nextBtn").classList.add("hidden");
+  const box=$("#choices"); box.innerHTML="";
+  q.choices.forEach((txt,i)=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.innerHTML=`<span class="label">${labels[i]}</span><span>${escapeHtml(txt)}</span>`;
+    b.addEventListener("click",()=>answer(i));
+    box.appendChild(b);
+  });
+}
+function answer(sel){
+  const q=session[idx];
+  const correct=sel===q.answer;
+  answers.push({q,sel,correct});
+  [...$("#choices").children].forEach((b,i)=>{
+    b.disabled=true;
+    if(immediate){
+      if(i===q.answer)b.classList.add("correct");
+      if(i===sel && i!==q.answer)b.classList.add("wrong");
+    }
+  });
+  if(immediate){
+    const f=$("#feedback");
+    f.className=`feedback ${correct?"good":"bad"}`;
+    f.innerHTML=`<div class="feedback-title">${correct?"正解":"不正解"}</div>
+      <div>${escapeHtml(q.explanation)}</div>`;
+    show(f);
+    show($("#nextBtn"));
+  }else{
+    setTimeout(next,180);
+  }
+}
+$("#nextBtn").addEventListener("click",next);
+function next(){
+  idx++;
+  if(idx>=session.length){finish();return;}
+  renderQuestion();
+}
+function finish(){
+  hide(quiz); show(result);
+  const correct=answers.filter(a=>a.correct).length;
+  const wrong=answers.length-correct;
+  const rate=Math.round(correct/answers.length*100);
+  $("#score").textContent=`${correct} / ${answers.length}`;
+  $("#correctKpi").textContent=correct;
+  $("#wrongKpi").textContent=wrong;
+  $("#rateKpi").textContent=`${rate}%`;
+
+  const stats={};
+  answers.forEach(a=>{
+    if(!stats[a.q.category])stats[a.q.category]={ok:0,total:0};
+    stats[a.q.category].total++;
+    if(a.correct)stats[a.q.category].ok++;
+  });
+  $("#catTable").innerHTML=Object.entries(stats).map(([c,s])=>
+    `<tr><td>${escapeHtml(c)}</td><td>${s.ok}</td><td>${s.total}</td><td>${Math.round(s.ok/s.total*100)}%</td></tr>`
+  ).join("");
+
+  const rev=$("#review"); rev.innerHTML="";
+  answers.forEach((a,i)=>{
+    const d=document.createElement("details");
+    d.open=!a.correct;
+    const chosen=a.q.choices[a.sel];
+    const correctText=a.q.choices[a.q.answer];
+    d.innerHTML=`<summary>問${i+1} ${a.correct?"○":"×"}｜${escapeHtml(a.q.category)}</summary>
+      <div class="review-item">
+        <div><b>問題：</b>${escapeHtml(a.q.question)}</div>
+        <div style="margin-top:6px"><b>あなた：</b>${labels[a.sel]} ${escapeHtml(chosen)}</div>
+        <div><b>正解：</b>${labels[a.q.answer]} ${escapeHtml(correctText)}</div>
+        <div style="margin-top:6px"><b>解説：</b>${escapeHtml(a.q.explanation)}</div>
+      </div>`;
+    rev.appendChild(d);
+  });
+
+  const wrongQuestions=answers.filter(a=>!a.correct).map(a=>a.q.question);
+  localStorage.setItem("scA2WrongQuestions",JSON.stringify(wrongQuestions));
+  $("#retryWrongBtn").disabled=wrong===0;
+}
+
+$("#retryWrongBtn").addEventListener("click",()=>{
+  const wrong = answers.filter(a=>!a.correct).map(a=>a.q);
+  if(!wrong.length)return;
+  session=wrong.map(q=>{
+    // choices are already shuffled in q; restore current as base-like then reshuffle
+    const original={...q, choices:[...q.choices], answer:q.answer};
+    return prepareQuestion(original);
+  });
+  begin();
+});
+$("#homeBtn").addEventListener("click",()=>{hide(result);show(start)});
+$("#quitBtn").addEventListener("click",()=>{
+  if(confirm("クイズを中断して設定画面に戻りますか？")){
+    hide(quiz);show(start);
+  }
+});
+
+$("#importBtn").addEventListener("click",()=>{
+  const msg=$("#importMsg");
+  try{
+    const arr=JSON.parse($("#importBox").value);
+    if(!Array.isArray(arr)) throw new Error("配列ではありません");
+    for(const q of arr){
+      if(typeof q.category!=="string"||typeof q.question!=="string"||
+         !Array.isArray(q.choices)||q.choices.length!==4||
+         !Number.isInteger(q.answer)||q.answer<0||q.answer>3||
+         typeof q.explanation!=="string"){
+        throw new Error("形式が一致しない問題があります");
+      }
+    }
+    customBank=[...customBank,...arr];
+    localStorage.setItem("scA2CustomBank",JSON.stringify(customBank));
+    bank=[...baseBank,...customBank];
+    renderCategories();
+    msg.textContent=`${arr.length}問を追加しました。`;
+    $("#importBox").value="";
+  }catch(e){
+    msg.textContent=`読み込みエラー：${e.message}`;
+  }
+});
+$("#clearCustomBtn").addEventListener("click",()=>{
+  if(confirm("追加した問題をすべて削除しますか？")){
+    customBank=[];
+    localStorage.removeItem("scA2CustomBank");
+    bank=[...baseBank];
+    renderCategories();
+    $("#importMsg").textContent="追加問題を削除しました。";
+  }
+});
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+</script>
+</body>
+</html>
