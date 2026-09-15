@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SC 科目A-2 クイズ（自然な選択肢版・316問）</title>
+<title>SC 科目A-2 クイズ（自然な選択肢版・316問・前問へ戻る対応）</title>
 <meta name="theme-color" content="#0f172a">
 <style>
   :root{
@@ -71,7 +71,7 @@
   .feedback.good{background:#f0fdf4;border-color:#bbf7d0}
   .feedback.bad{background:#fef2f2;border-color:#fecaca}
   .feedback-title{font-weight:900;margin-bottom:4px}
-  .nextrow{margin-top:14px;display:flex;justify-content:flex-end}
+  .nextrow{margin-top:14px;display:flex;justify-content:space-between;gap:10px;align-items:center}
   .score{font-size:44px;font-weight:900;letter-spacing:-.03em}
   .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
   .kpi{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
@@ -167,6 +167,7 @@
     <div id="choices" class="choices"></div>
     <div id="feedback" class="feedback hidden"></div>
     <div class="nextrow">
+      <button id="prevBtn" class="btn ghost hidden">一つ前の問題に戻る</button>
       <button id="nextBtn" class="btn primary hidden">次の問題</button>
     </div>
   </section>
@@ -4076,25 +4077,56 @@ function begin(){
 }
 function renderQuestion(){
   const q=session[idx];
+  const saved=answers[idx];
+
   $("#qno").textContent=`問題 ${idx+1} / ${session.length}`;
   $("#cat").textContent=q.category;
   $("#bar").style.width=`${(idx/session.length)*100}%`;
   $("#question").textContent=q.question;
+
+  // 1問目では「戻る」を表示しない
+  if(idx>0) show($("#prevBtn"));
+  else hide($("#prevBtn"));
+
   $("#feedback").className="feedback hidden";
   $("#nextBtn").classList.add("hidden");
+
   const box=$("#choices"); box.innerHTML="";
   q.choices.forEach((txt,i)=>{
     const b=document.createElement("button");
     b.className="choice";
     b.innerHTML=`<span class="label">${labels[i]}</span><span>${escapeHtml(txt)}</span>`;
-    b.addEventListener("click",()=>answer(i));
+
+    if(saved){
+      // 既に回答した問題へ戻った場合は、回答内容を保持して再表示する
+      b.disabled=true;
+      if(immediate){
+        if(i===q.answer)b.classList.add("correct");
+        if(i===saved.sel && i!==q.answer)b.classList.add("wrong");
+      }
+    }else{
+      b.addEventListener("click",()=>answer(i));
+    }
     box.appendChild(b);
   });
+
+  if(saved){
+    if(immediate){
+      const f=$("#feedback");
+      f.className=`feedback ${saved.correct?"good":"bad"}`;
+      f.innerHTML=`<div class="feedback-title">${saved.correct?"正解":"不正解"}</div>
+        <div>${escapeHtml(q.explanation)}</div>`;
+      show(f);
+    }
+    show($("#nextBtn"));
+  }
+
+  $("#nextBtn").textContent = idx===session.length-1 ? "結果を見る" : "次の問題";
 }
 function answer(sel){
   const q=session[idx];
   const correct=sel===q.answer;
-  answers.push({q,sel,correct});
+  answers[idx]={q,sel,correct};
   [...$("#choices").children].forEach((b,i)=>{
     b.disabled=true;
     if(immediate){
@@ -4113,6 +4145,11 @@ function answer(sel){
     setTimeout(next,180);
   }
 }
+$("#prevBtn").addEventListener("click",()=>{
+  if(idx<=0)return;
+  idx--;
+  renderQuestion();
+});
 $("#nextBtn").addEventListener("click",next);
 function next(){
   idx++;
