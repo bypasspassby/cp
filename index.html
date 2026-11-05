@@ -1,36 +1,243 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SC向け TCP/UDP ポート番号クイズ</title>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SC向け ポート番号・HTTPレスポンスヘッダ クイズ</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;background:#f8fafc;color:#0f172a;margin:0}
-.wrap{max-width:820px;margin:auto;padding:18px}.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;box-shadow:0 8px 24px #0f172a12}
-h1{font-size:22px}.hidden{display:none}.muted{color:#64748b;font-size:13px}.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:800}
-.primary{background:#2563eb;color:#fff}.secondary{background:#eef2ff;color:#3730a3}.row{display:flex;gap:10px;flex-wrap:wrap}select{padding:8px}
-.q{font-size:19px;font-weight:800;margin:14px 0}.choices{display:grid;gap:10px}.choice{text-align:left;background:#fff;border:1.5px solid #cbd5e1;border-radius:14px;padding:14px;font-weight:700}
-.correct{background:#f0fdf4;border-color:#86efac}.wrong{background:#fef2f2;border-color:#fecaca}.fb{margin-top:14px;padding:12px;border-radius:12px;background:#f8fafc}
-.score{font-size:42px;font-weight:900}details{border:1px solid #e2e8f0;border-radius:12px;padding:10px;margin-top:8px}
-</style></head><body><div class="wrap"><h1>SC向け TCP/UDP ポート番号クイズ</h1>
-<section id="start" class="card"><p class="muted">SC科目A-2で優先して覚えたい代表ポートだけに厳選した38問です。</p>
-<div class="row"><label>出題数 <select id="count"><option>10</option><option selected>20</option><option>30</option><option>38</option></select></label>
-<label>解説 <select id="mode"><option value="now" selected>回答直後</option><option value="end">最後</option></select></label></div>
-<div class="row" style="margin-top:16px"><button id="go" class="btn primary">開始</button><button id="wrongGo" class="btn secondary">前回の誤答だけ</button></div></section>
-<section id="quiz" class="card hidden"><div id="meta" class="muted"></div><div id="question" class="q"></div><div id="choices" class="choices"></div>
-<div id="fb" class="fb hidden"></div><button id="next" class="btn primary hidden" style="margin-top:14px">次へ</button></section>
-<section id="result" class="card hidden"><div id="score" class="score"></div><div id="review"></div><div class="row" style="margin-top:16px">
-<button id="retry" class="btn secondary">今回の誤答だけ</button><button id="home" class="btn primary">設定へ</button></div></section>
+:root {
+  --line:#e2e8f0; --blue:#2563eb; --ink:#0f172a; --muted:#64748b;
+  --good:#f0fdf4; --bad:#fef2f2;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:linear-gradient(#eff6ff,#f8fafc 180px);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+}
+.wrap { max-width:860px; margin:auto; padding:18px 16px 48px; }
+.card {
+  background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px;
+  box-shadow:0 8px 24px rgba(15,23,42,.08);
+}
+.top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
+h1 { font-size:22px; margin:0; }
+.pill { background:#dbeafe; color:#1e3a8a; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+.hidden { display:none !important; }
+.muted { color:var(--muted); font-size:13px; }
+.small { font-size:12px; color:var(--muted); }
+.row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.grid { display:grid; gap:12px; }
+.grid2 { grid-template-columns:1fr 1fr; }
+@media (max-width:640px) { .grid2 { grid-template-columns:1fr; } }
+.btn { border:0; border-radius:14px; padding:13px 16px; font-weight:800; cursor:pointer; }
+.primary { background:var(--blue); color:#fff; }
+.secondary { background:#eef2ff; color:#3730a3; }
+select { padding:9px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+.checkbox-block { border:1px solid var(--line); border-radius:12px; padding:12px; background:#f8fafc; }
+.checkbox-item { display:flex; align-items:center; gap:8px; margin:6px 0; font-weight:700; }
+.progress { height:9px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin:14px 0; }
+.progress div { height:100%; background:#60a5fa; width:0; }
+.q { font-size:19px; font-weight:800; margin:14px 0; }
+.choices { display:grid; gap:10px; }
+.choice {
+  text-align:left; background:#fff; border:1.5px solid #cbd5e1; border-radius:14px;
+  padding:14px; font-weight:700; display:flex; gap:12px; width:100%;
+}
+.lab {
+  width:30px; height:30px; border-radius:9px; background:#eff6ff; color:#1d4ed8;
+  display:grid; place-items:center; flex:0 0 30px;
+}
+.correct { background:var(--good); border-color:#86efac; }
+.wrong { background:var(--bad); border-color:#fecaca; }
+.fb { margin-top:14px; padding:12px; border:1px solid var(--line); border-radius:12px; background:#f8fafc; }
+.score { font-size:42px; font-weight:900; }
+details { border:1px solid var(--line); border-radius:12px; padding:10px; margin-top:8px; }
+summary { font-weight:800; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>SC向け ポート番号・HTTPレスポンスヘッダ クイズ</h1>
+    <div class="pill">70問</div>
+  </div>
+
+  <section id="start" class="card">
+    <p class="muted">SC科目A-2向け。ポート番号とHTTPレスポンスヘッダの代表事項をタップで反復できます。</p>
+
+    <div class="checkbox-block">
+      <div style="font-weight:800; margin-bottom:6px;">出題範囲</div>
+      <label class="checkbox-item"><input type="checkbox" id="cbPort" checked> ポート番号</label>
+      <label class="checkbox-item"><input type="checkbox" id="cbHeader" checked> HTTPレスポンスヘッダ</label>
+      <div class="small">どちらも初期状態で選択されています。どちらか一方だけに絞ることもできます。</div>
+    </div>
+
+    <div class="grid grid2" style="margin-top:14px">
+      <label>出題数<br><select id="count">
+        <option>10</option><option selected>20</option><option>30</option><option>40</option><option>70</option>
+      </select></label>
+      <label>解説表示<br><select id="mode">
+        <option value="now" selected>回答直後</option><option value="end">最後にまとめて</option>
+      </select></label>
+    </div>
+
+    <div class="row" style="margin-top:16px">
+      <button id="go" class="btn primary">開始</button>
+      <button id="wrongGo" class="btn secondary">前回の誤答だけ</button>
+    </div>
+  </section>
+
+  <section id="quiz" class="card hidden">
+    <div id="meta" class="muted"></div>
+    <div class="progress"><div id="bar"></div></div>
+    <div id="question" class="q"></div>
+    <div id="choices" class="choices"></div>
+    <div id="fb" class="fb hidden"></div>
+    <button id="next" class="btn primary hidden" style="margin-top:14px">次へ</button>
+  </section>
+
+  <section id="result" class="card hidden">
+    <div id="score" class="score"></div>
+    <div id="review"></div>
+    <div class="row" style="margin-top:16px">
+      <button id="retry" class="btn secondary">今回の誤答だけ</button>
+      <button id="home" class="btn primary">設定へ</button>
+    </div>
+  </section>
+</div>
+
 <script>
-const BANK=[{"id": "q1", "question": "TCPのポート番号20に対応する代表的なサービスはどれか。", "choices": ["FTPデータ転送", "SSH", "TFTP", "FTP制御"], "answer": 0, "explanation": "FTPデータ転送は代表的にTCP/20を使用する。"}, {"id": "q2", "question": "TCPのポート番号21に対応する代表的なサービスはどれか。", "choices": ["FTP制御", "Telnet", "SSH", "FTPデータ転送"], "answer": 0, "explanation": "FTP制御は代表的にTCP/21を使用する。"}, {"id": "q3", "question": "TCPのポート番号22に対応する代表的なサービスはどれか。", "choices": ["Telnet", "SSH", "FTP制御", "HTTP"], "answer": 1, "explanation": "SSHは代表的にTCP/22を使用する。"}, {"id": "q4", "question": "TCPのポート番号23に対応する代表的なサービスはどれか。", "choices": ["SSH", "FTP制御", "HTTP", "Telnet"], "answer": 3, "explanation": "Telnetは代表的にTCP/23を使用する。"}, {"id": "q5", "question": "TCPのポート番号25に対応する代表的なサービスはどれか。", "choices": ["POP3", "SMTP", "メールSubmission", "IMAP"], "answer": 1, "explanation": "SMTPは代表的にTCP/25を使用する。"}, {"id": "q6", "question": "TCP/UDPのポート番号53に対応する代表的なサービスはどれか。", "choices": ["NTP", "DHCPサーバ", "DNS", "SNMP"], "answer": 2, "explanation": "DNSは代表的にTCP/UDP/53を使用する。"}, {"id": "q7", "question": "UDPのポート番号67に対応する代表的なサービスはどれか。", "choices": ["DHCPサーバ", "TFTP", "DNS", "DHCPクライアント"], "answer": 0, "explanation": "DHCPサーバは代表的にUDP/67を使用する。"}, {"id": "q8", "question": "UDPのポート番号68に対応する代表的なサービスはどれか。", "choices": ["TFTP", "DHCPクライアント", "DNS", "DHCPサーバ"], "answer": 1, "explanation": "DHCPクライアントは代表的にUDP/68を使用する。"}, {"id": "q9", "question": "UDPのポート番号69に対応する代表的なサービスはどれか。", "choices": ["NTP", "FTPデータ転送", "TFTP", "DNS"], "answer": 2, "explanation": "TFTPは代表的にUDP/69を使用する。"}, {"id": "q10", "question": "TCPのポート番号80に対応する代表的なサービスはどれか。", "choices": ["HTTPS", "HTTP", "SSH", "FTP制御"], "answer": 1, "explanation": "HTTPは代表的にTCP/80を使用する。"}, {"id": "q11", "question": "TCPのポート番号110に対応する代表的なサービスはどれか。", "choices": ["POP3", "IMAP", "メールSubmission", "SMTP"], "answer": 0, "explanation": "POP3は代表的にTCP/110を使用する。"}, {"id": "q12", "question": "UDPのポート番号123に対応する代表的なサービスはどれか。", "choices": ["NTP", "SNMP", "DNS", "RIP"], "answer": 0, "explanation": "NTPは代表的にUDP/123を使用する。"}, {"id": "q13", "question": "TCPのポート番号143に対応する代表的なサービスはどれか。", "choices": ["メールSubmission", "POP3", "SMTP", "IMAP"], "answer": 3, "explanation": "IMAPは代表的にTCP/143を使用する。"}, {"id": "q14", "question": "UDPのポート番号161に対応する代表的なサービスはどれか。", "choices": ["RIP", "SNMP", "NTP", "SNMP Trap"], "answer": 1, "explanation": "SNMPは代表的にUDP/161を使用する。"}, {"id": "q15", "question": "UDPのポート番号162に対応する代表的なサービスはどれか。", "choices": ["SNMP", "RIP", "SNMP Trap", "NTP"], "answer": 2, "explanation": "SNMP Trapは代表的にUDP/162を使用する。"}, {"id": "q16", "question": "TCPのポート番号179に対応する代表的なサービスはどれか。", "choices": ["RIP", "DNS", "BGP", "SNMP"], "answer": 2, "explanation": "BGPは代表的にTCP/179を使用する。"}, {"id": "q17", "question": "TCPのポート番号443に対応する代表的なサービスはどれか。", "choices": ["FTP制御", "SSH", "HTTPS", "HTTP"], "answer": 2, "explanation": "HTTPSは代表的にTCP/443を使用する。"}, {"id": "q18", "question": "UDPのポート番号520に対応する代表的なサービスはどれか。", "choices": ["SNMP", "RIP", "NTP", "BGP"], "answer": 1, "explanation": "RIPは代表的にUDP/520を使用する。"}, {"id": "q19", "question": "TCPのポート番号587に対応する代表的なサービスはどれか。", "choices": ["IMAP", "SMTP", "メールSubmission", "POP3"], "answer": 2, "explanation": "メールSubmissionは代表的にTCP/587を使用する。"}, {"id": "q20", "question": "FTPデータ転送の代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["21/TCP", "20/TCP", "69/UDP", "22/TCP"], "answer": 1, "explanation": "FTPデータ転送は代表的にTCP/20を使用する。"}, {"id": "q21", "question": "FTP制御の代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["23/TCP", "21/TCP", "20/TCP", "22/TCP"], "answer": 1, "explanation": "FTP制御は代表的にTCP/21を使用する。"}, {"id": "q22", "question": "SSHの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["23/TCP", "21/TCP", "22/TCP", "80/TCP"], "answer": 2, "explanation": "SSHは代表的にTCP/22を使用する。"}, {"id": "q23", "question": "Telnetの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["21/TCP", "22/TCP", "80/TCP", "23/TCP"], "answer": 3, "explanation": "Telnetは代表的にTCP/23を使用する。"}, {"id": "q24", "question": "SMTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["25/TCP", "587/TCP", "143/TCP", "110/TCP"], "answer": 0, "explanation": "SMTPは代表的にTCP/25を使用する。"}, {"id": "q25", "question": "DNSの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["161/UDP", "53/TCP/UDP", "123/UDP", "67/UDP"], "answer": 1, "explanation": "DNSは代表的にTCP/UDP/53を使用する。"}, {"id": "q26", "question": "DHCPサーバの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["69/UDP", "53/TCP/UDP", "68/UDP", "67/UDP"], "answer": 3, "explanation": "DHCPサーバは代表的にUDP/67を使用する。"}, {"id": "q27", "question": "DHCPクライアントの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["69/UDP", "67/UDP", "53/TCP/UDP", "68/UDP"], "answer": 3, "explanation": "DHCPクライアントは代表的にUDP/68を使用する。"}, {"id": "q28", "question": "TFTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["69/UDP", "123/UDP", "20/TCP", "53/TCP/UDP"], "answer": 0, "explanation": "TFTPは代表的にUDP/69を使用する。"}, {"id": "q29", "question": "HTTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["80/TCP", "22/TCP", "443/TCP", "21/TCP"], "answer": 0, "explanation": "HTTPは代表的にTCP/80を使用する。"}, {"id": "q30", "question": "POP3の代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["143/TCP", "25/TCP", "587/TCP", "110/TCP"], "answer": 3, "explanation": "POP3は代表的にTCP/110を使用する。"}, {"id": "q31", "question": "NTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["161/UDP", "520/UDP", "123/UDP", "53/TCP/UDP"], "answer": 2, "explanation": "NTPは代表的にUDP/123を使用する。"}, {"id": "q32", "question": "IMAPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["143/TCP", "587/TCP", "25/TCP", "110/TCP"], "answer": 0, "explanation": "IMAPは代表的にTCP/143を使用する。"}, {"id": "q33", "question": "SNMPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["520/UDP", "161/UDP", "162/UDP", "123/UDP"], "answer": 1, "explanation": "SNMPは代表的にUDP/161を使用する。"}, {"id": "q34", "question": "SNMP Trapの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["162/UDP", "520/UDP", "123/UDP", "161/UDP"], "answer": 0, "explanation": "SNMP Trapは代表的にUDP/162を使用する。"}, {"id": "q35", "question": "BGPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["161/UDP", "53/TCP/UDP", "179/TCP", "520/UDP"], "answer": 2, "explanation": "BGPは代表的にTCP/179を使用する。"}, {"id": "q36", "question": "HTTPSの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["80/TCP", "21/TCP", "22/TCP", "443/TCP"], "answer": 3, "explanation": "HTTPSは代表的にTCP/443を使用する。"}, {"id": "q37", "question": "RIPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["520/UDP", "161/UDP", "123/UDP", "179/TCP"], "answer": 0, "explanation": "RIPは代表的にUDP/520を使用する。"}, {"id": "q38", "question": "メールSubmissionの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["143/TCP", "110/TCP", "25/TCP", "587/TCP"], "answer": 3, "explanation": "メールSubmissionは代表的にTCP/587を使用する。"}],$=s=>document.querySelector(s),L=["ア","イ","ウ","エ"];let S=[],I=0,A=[],NOW=true;
-function sh(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function show(x){x.classList.remove("hidden")}function hide(x){x.classList.add("hidden")}
-function start(pool){S=sh(pool).slice(0,Math.min(+$("#count").value,pool.length));I=0;A=[];NOW=$("#mode").value==="now";hide($("#start"));hide($("#result"));show($("#quiz"));render()}
-$("#go").onclick=()=>start(BANK);$("#wrongGo").onclick=()=>{let ids=JSON.parse(localStorage.getItem("scPortWrong")||"[]"),p=BANK.filter(q=>ids.includes(q.id));if(!p.length)return alert("誤答履歴がありません。");start(p)};
-function render(){let q=S[I];$("#meta").textContent=`問題 ${I+1} / ${S.length}`;$("#question").textContent=q.question;$("#choices").innerHTML="";hide($("#fb"));hide($("#next"));
-q.choices.forEach((c,j)=>{let b=document.createElement("button");b.className="choice";b.textContent=L[j]+"　"+c;b.onclick=()=>answer(j);$("#choices").appendChild(b)})}
-function answer(j){let q=S[I],ok=j===q.answer;A.push({q,j,ok});[...$("#choices").children].forEach((b,k)=>{b.disabled=true;if(NOW){if(k===q.answer)b.classList.add("correct");if(k===j&&!ok)b.classList.add("wrong")}});
-if(NOW){$("#fb").textContent=(ok?"正解。 ":"不正解。 ")+q.explanation;show($("#fb"));show($("#next"))}else setTimeout(nxt,100)}
-function nxt(){I++;if(I>=S.length)return finish();render()}$("#next").onclick=nxt;
-function finish(){hide($("#quiz"));show($("#result"));let ok=A.filter(x=>x.ok).length;$("#score").textContent=`${ok} / ${A.length}（${Math.round(ok/A.length*100)}%）`;$("#review").innerHTML="";
-A.forEach((a,n)=>{let d=document.createElement("details");d.open=!a.ok;d.innerHTML=`<summary>問${n+1} ${a.ok?"○":"×"}</summary><p>${a.q.question}</p><p>あなた：${a.q.choices[a.j]}<br>正解：${a.q.choices[a.q.answer]}<br>${a.q.explanation}</p>`;$("#review").appendChild(d)});
-let w=A.filter(x=>!x.ok).map(x=>x.q.id);localStorage.setItem("scPortWrong",JSON.stringify(w));$("#retry").disabled=!w.length}
-$("#retry").onclick=()=>{let p=A.filter(x=>!x.ok).map(x=>x.q);if(p.length)start(p)};$("#home").onclick=()=>{hide($("#result"));show($("#start"))};
-</script></div></body></html>
+const BANK = [{"id": "p1", "category": "port", "question": "TCPのポート番号20に対応する代表的なサービスはどれか。", "choices": ["FTPデータ転送", "SSH", "TFTP", "FTP制御"], "answer": 0, "explanation": "FTPデータ転送は代表的にTCP/20を使用する。"}, {"id": "p2", "category": "port", "question": "TCPのポート番号21に対応する代表的なサービスはどれか。", "choices": ["FTP制御", "Telnet", "SSH", "FTPデータ転送"], "answer": 0, "explanation": "FTP制御は代表的にTCP/21を使用する。"}, {"id": "p3", "category": "port", "question": "TCPのポート番号22に対応する代表的なサービスはどれか。", "choices": ["Telnet", "SSH", "FTP制御", "HTTP"], "answer": 1, "explanation": "SSHは代表的にTCP/22を使用する。"}, {"id": "p4", "category": "port", "question": "TCPのポート番号23に対応する代表的なサービスはどれか。", "choices": ["SSH", "FTP制御", "HTTP", "Telnet"], "answer": 3, "explanation": "Telnetは代表的にTCP/23を使用する。"}, {"id": "p5", "category": "port", "question": "TCPのポート番号25に対応する代表的なサービスはどれか。", "choices": ["POP3", "SMTP", "メールSubmission", "IMAP"], "answer": 1, "explanation": "SMTPは代表的にTCP/25を使用する。"}, {"id": "p6", "category": "port", "question": "TCP/UDPのポート番号53に対応する代表的なサービスはどれか。", "choices": ["NTP", "DHCPサーバ", "DNS", "SNMP"], "answer": 2, "explanation": "DNSは代表的にTCP/UDP/53を使用する。"}, {"id": "p7", "category": "port", "question": "UDPのポート番号67に対応する代表的なサービスはどれか。", "choices": ["DHCPサーバ", "TFTP", "DNS", "DHCPクライアント"], "answer": 0, "explanation": "DHCPサーバは代表的にUDP/67を使用する。"}, {"id": "p8", "category": "port", "question": "UDPのポート番号68に対応する代表的なサービスはどれか。", "choices": ["TFTP", "DHCPクライアント", "DNS", "DHCPサーバ"], "answer": 1, "explanation": "DHCPクライアントは代表的にUDP/68を使用する。"}, {"id": "p9", "category": "port", "question": "UDPのポート番号69に対応する代表的なサービスはどれか。", "choices": ["NTP", "FTPデータ転送", "TFTP", "DNS"], "answer": 2, "explanation": "TFTPは代表的にUDP/69を使用する。"}, {"id": "p10", "category": "port", "question": "TCPのポート番号80に対応する代表的なサービスはどれか。", "choices": ["HTTPS", "HTTP", "SSH", "FTP制御"], "answer": 1, "explanation": "HTTPは代表的にTCP/80を使用する。"}, {"id": "p11", "category": "port", "question": "TCPのポート番号110に対応する代表的なサービスはどれか。", "choices": ["POP3", "IMAP", "メールSubmission", "SMTP"], "answer": 0, "explanation": "POP3は代表的にTCP/110を使用する。"}, {"id": "p12", "category": "port", "question": "UDPのポート番号123に対応する代表的なサービスはどれか。", "choices": ["NTP", "SNMP", "DNS", "RIP"], "answer": 0, "explanation": "NTPは代表的にUDP/123を使用する。"}, {"id": "p13", "category": "port", "question": "TCPのポート番号143に対応する代表的なサービスはどれか。", "choices": ["メールSubmission", "POP3", "SMTP", "IMAP"], "answer": 3, "explanation": "IMAPは代表的にTCP/143を使用する。"}, {"id": "p14", "category": "port", "question": "UDPのポート番号161に対応する代表的なサービスはどれか。", "choices": ["RIP", "SNMP", "NTP", "SNMP Trap"], "answer": 1, "explanation": "SNMPは代表的にUDP/161を使用する。"}, {"id": "p15", "category": "port", "question": "UDPのポート番号162に対応する代表的なサービスはどれか。", "choices": ["SNMP", "RIP", "SNMP Trap", "NTP"], "answer": 2, "explanation": "SNMP Trapは代表的にUDP/162を使用する。"}, {"id": "p16", "category": "port", "question": "TCPのポート番号179に対応する代表的なサービスはどれか。", "choices": ["RIP", "DNS", "BGP", "SNMP"], "answer": 2, "explanation": "BGPは代表的にTCP/179を使用する。"}, {"id": "p17", "category": "port", "question": "TCPのポート番号443に対応する代表的なサービスはどれか。", "choices": ["FTP制御", "SSH", "HTTPS", "HTTP"], "answer": 2, "explanation": "HTTPSは代表的にTCP/443を使用する。"}, {"id": "p18", "category": "port", "question": "UDPのポート番号520に対応する代表的なサービスはどれか。", "choices": ["SNMP", "RIP", "NTP", "BGP"], "answer": 1, "explanation": "RIPは代表的にUDP/520を使用する。"}, {"id": "p19", "category": "port", "question": "TCPのポート番号587に対応する代表的なサービスはどれか。", "choices": ["IMAP", "SMTP", "メールSubmission", "POP3"], "answer": 2, "explanation": "メールSubmissionは代表的にTCP/587を使用する。"}, {"id": "p20", "category": "port", "question": "FTPデータ転送の代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["21/TCP", "20/TCP", "69/UDP", "22/TCP"], "answer": 1, "explanation": "FTPデータ転送は代表的にTCP/20を使用する。"}, {"id": "p21", "category": "port", "question": "FTP制御の代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["23/TCP", "21/TCP", "20/TCP", "22/TCP"], "answer": 1, "explanation": "FTP制御は代表的にTCP/21を使用する。"}, {"id": "p22", "category": "port", "question": "SSHの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["23/TCP", "21/TCP", "22/TCP", "80/TCP"], "answer": 2, "explanation": "SSHは代表的にTCP/22を使用する。"}, {"id": "p23", "category": "port", "question": "Telnetの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["21/TCP", "22/TCP", "80/TCP", "23/TCP"], "answer": 3, "explanation": "Telnetは代表的にTCP/23を使用する。"}, {"id": "p24", "category": "port", "question": "SMTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["25/TCP", "587/TCP", "143/TCP", "110/TCP"], "answer": 0, "explanation": "SMTPは代表的にTCP/25を使用する。"}, {"id": "p25", "category": "port", "question": "DNSの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["161/UDP", "53/TCP/UDP", "123/UDP", "67/UDP"], "answer": 1, "explanation": "DNSは代表的にTCP/UDP/53を使用する。"}, {"id": "p26", "category": "port", "question": "DHCPサーバの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["69/UDP", "53/TCP/UDP", "68/UDP", "67/UDP"], "answer": 3, "explanation": "DHCPサーバは代表的にUDP/67を使用する。"}, {"id": "p27", "category": "port", "question": "DHCPクライアントの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["69/UDP", "67/UDP", "53/TCP/UDP", "68/UDP"], "answer": 3, "explanation": "DHCPクライアントは代表的にUDP/68を使用する。"}, {"id": "p28", "category": "port", "question": "TFTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["69/UDP", "123/UDP", "20/TCP", "53/TCP/UDP"], "answer": 0, "explanation": "TFTPは代表的にUDP/69を使用する。"}, {"id": "p29", "category": "port", "question": "HTTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["80/TCP", "22/TCP", "443/TCP", "21/TCP"], "answer": 0, "explanation": "HTTPは代表的にTCP/80を使用する。"}, {"id": "p30", "category": "port", "question": "POP3の代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["143/TCP", "25/TCP", "587/TCP", "110/TCP"], "answer": 3, "explanation": "POP3は代表的にTCP/110を使用する。"}, {"id": "p31", "category": "port", "question": "NTPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["161/UDP", "520/UDP", "123/UDP", "53/TCP/UDP"], "answer": 2, "explanation": "NTPは代表的にUDP/123を使用する。"}, {"id": "p32", "category": "port", "question": "IMAPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["143/TCP", "587/TCP", "25/TCP", "110/TCP"], "answer": 0, "explanation": "IMAPは代表的にTCP/143を使用する。"}, {"id": "p33", "category": "port", "question": "SNMPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["520/UDP", "161/UDP", "162/UDP", "123/UDP"], "answer": 1, "explanation": "SNMPは代表的にUDP/161を使用する。"}, {"id": "p34", "category": "port", "question": "SNMP Trapの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["162/UDP", "520/UDP", "123/UDP", "161/UDP"], "answer": 0, "explanation": "SNMP Trapは代表的にUDP/162を使用する。"}, {"id": "p35", "category": "port", "question": "BGPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["161/UDP", "53/TCP/UDP", "179/TCP", "520/UDP"], "answer": 2, "explanation": "BGPは代表的にTCP/179を使用する。"}, {"id": "p36", "category": "port", "question": "HTTPSの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["80/TCP", "21/TCP", "22/TCP", "443/TCP"], "answer": 3, "explanation": "HTTPSは代表的にTCP/443を使用する。"}, {"id": "p37", "category": "port", "question": "RIPの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["520/UDP", "161/UDP", "123/UDP", "179/TCP"], "answer": 0, "explanation": "RIPは代表的にUDP/520を使用する。"}, {"id": "p38", "category": "port", "question": "メールSubmissionの代表的なポート番号とトランスポートプロトコルの組合せはどれか。", "choices": ["143/TCP", "110/TCP", "25/TCP", "587/TCP"], "answer": 3, "explanation": "メールSubmissionは代表的にTCP/587を使用する。"}, {"id": "h39", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『レスポンス本文のデータ形式を示す』", "choices": ["Cache-Control", "Set-Cookie", "Content-Type", "Location"], "answer": 2, "explanation": "Content-Typeは、レスポンス本文のデータ形式を示すために用いる。"}, {"id": "h40", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『リダイレクト先を示す』", "choices": ["Content-Type", "Cache-Control", "Location", "Set-Cookie"], "answer": 2, "explanation": "Locationは、リダイレクト先を示すために用いる。"}, {"id": "h41", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『ブラウザにCookieを保存させる』", "choices": ["Location", "Content-Type", "Set-Cookie", "Cache-Control"], "answer": 2, "explanation": "Set-Cookieは、ブラウザにCookieを保存させるために用いる。"}, {"id": "h42", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『キャッシュの動作を制御する』", "choices": ["Location", "Set-Cookie", "Cache-Control", "Content-Type"], "answer": 2, "explanation": "Cache-Controlは、キャッシュの動作を制御するために用いる。"}, {"id": "h43", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『HTTP認証方式をクライアントに通知する』", "choices": ["WWW-Authenticate", "Set-Cookie", "Content-Type", "Location"], "answer": 0, "explanation": "WWW-Authenticateは、HTTP認証方式をクライアントに通知するために用いる。"}, {"id": "h44", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『CORSでアクセスを許可するオリジンを示す』", "choices": ["Access-Control-Allow-Origin", "Location", "Set-Cookie", "Content-Type"], "answer": 0, "explanation": "Access-Control-Allow-Originは、CORSでアクセスを許可するオリジンを示すために用いる。"}, {"id": "h45", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『HSTSを有効にしHTTPS接続を強制する』", "choices": ["Set-Cookie", "Content-Type", "Location", "Strict-Transport-Security"], "answer": 3, "explanation": "Strict-Transport-Securityは、HSTSを有効にしHTTPS接続を強制するために用いる。"}, {"id": "h46", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『読み込み可能なスクリプトなどを制限する』", "choices": ["Content-Security-Policy", "Content-Type", "Location", "Set-Cookie"], "answer": 0, "explanation": "Content-Security-Policyは、読み込み可能なスクリプトなどを制限するために用いる。"}, {"id": "h47", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『MIMEタイプの推測を禁止する』", "choices": ["Set-Cookie", "Location", "Content-Type", "X-Content-Type-Options"], "answer": 3, "explanation": "X-Content-Type-Optionsは、MIMEタイプの推測を禁止するために用いる。"}, {"id": "h48", "category": "header", "question": "次の役割をもつレスポンスヘッダはどれか。『Refererヘッダに含める情報を制御する』", "choices": ["Set-Cookie", "Referrer-Policy", "Content-Type", "Location"], "answer": 1, "explanation": "Referrer-Policyは、Refererヘッダに含める情報を制御するために用いる。"}, {"id": "h49", "category": "header", "question": "Content-Typeヘッダの役割として適切なものはどれか。", "choices": ["キャッシュの動作を制御する", "リダイレクト先を示す", "レスポンス本文のデータ形式を示す", "ブラウザにCookieを保存させる"], "answer": 2, "explanation": "Content-Typeは、レスポンス本文のデータ形式を示すヘッダである。"}, {"id": "h50", "category": "header", "question": "Locationヘッダの役割として適切なものはどれか。", "choices": ["キャッシュの動作を制御する", "レスポンス本文のデータ形式を示す", "リダイレクト先を示す", "ブラウザにCookieを保存させる"], "answer": 2, "explanation": "Locationは、リダイレクト先を示すヘッダである。"}, {"id": "h51", "category": "header", "question": "Set-Cookieヘッダの役割として適切なものはどれか。", "choices": ["ブラウザにCookieを保存させる", "リダイレクト先を示す", "キャッシュの動作を制御する", "レスポンス本文のデータ形式を示す"], "answer": 0, "explanation": "Set-Cookieは、ブラウザにCookieを保存させるヘッダである。"}, {"id": "h52", "category": "header", "question": "Cache-Controlヘッダの役割として適切なものはどれか。", "choices": ["キャッシュの動作を制御する", "レスポンス本文のデータ形式を示す", "ブラウザにCookieを保存させる", "リダイレクト先を示す"], "answer": 0, "explanation": "Cache-Controlは、キャッシュの動作を制御するヘッダである。"}, {"id": "h53", "category": "header", "question": "WWW-Authenticateヘッダの役割として適切なものはどれか。", "choices": ["HTTP認証方式をクライアントに通知する", "レスポンス本文のデータ形式を示す", "ブラウザにCookieを保存させる", "リダイレクト先を示す"], "answer": 0, "explanation": "WWW-Authenticateは、HTTP認証方式をクライアントに通知するヘッダである。"}, {"id": "h54", "category": "header", "question": "Access-Control-Allow-Originヘッダの役割として適切なものはどれか。", "choices": ["ブラウザにCookieを保存させる", "CORSでアクセスを許可するオリジンを示す", "リダイレクト先を示す", "レスポンス本文のデータ形式を示す"], "answer": 1, "explanation": "Access-Control-Allow-Originは、CORSでアクセスを許可するオリジンを示すヘッダである。"}, {"id": "h55", "category": "header", "question": "Strict-Transport-Securityヘッダの役割として適切なものはどれか。", "choices": ["リダイレクト先を示す", "HSTSを有効にしHTTPS接続を強制する", "ブラウザにCookieを保存させる", "レスポンス本文のデータ形式を示す"], "answer": 1, "explanation": "Strict-Transport-Securityは、HSTSを有効にしHTTPS接続を強制するヘッダである。"}, {"id": "h56", "category": "header", "question": "Content-Security-Policyヘッダの役割として適切なものはどれか。", "choices": ["読み込み可能なスクリプトなどを制限する", "レスポンス本文のデータ形式を示す", "ブラウザにCookieを保存させる", "リダイレクト先を示す"], "answer": 0, "explanation": "Content-Security-Policyは、読み込み可能なスクリプトなどを制限するヘッダである。"}, {"id": "h57", "category": "header", "question": "X-Content-Type-Optionsヘッダの役割として適切なものはどれか。", "choices": ["リダイレクト先を示す", "MIMEタイプの推測を禁止する", "レスポンス本文のデータ形式を示す", "ブラウザにCookieを保存させる"], "answer": 1, "explanation": "X-Content-Type-Optionsは、MIMEタイプの推測を禁止するヘッダである。"}, {"id": "h58", "category": "header", "question": "Referrer-Policyヘッダの役割として適切なものはどれか。", "choices": ["ブラウザにCookieを保存させる", "リダイレクト先を示す", "Refererヘッダに含める情報を制御する", "レスポンス本文のデータ形式を示す"], "answer": 2, "explanation": "Referrer-Policyは、Refererヘッダに含める情報を制御するヘッダである。"}, {"id": "h59", "category": "header", "question": "主な指定値として「text/html」「application/json」などをとるヘッダはどれか。", "choices": ["Cache-Control", "Location", "Set-Cookie", "Content-Type"], "answer": 3, "explanation": "Content-Typeは、本文が何であるかを示す。"}, {"id": "h60", "category": "header", "question": "リダイレクト先のURLを入れるヘッダはどれか。", "choices": ["Cache-Control", "Set-Cookie", "Location", "Content-Type"], "answer": 2, "explanation": "Locationは、301、302、303、307、308などと組み合わせる。"}, {"id": "h61", "category": "header", "question": "「Secure」「HttpOnly」「SameSite=Lax」などの属性とともに使うヘッダはどれか。", "choices": ["Cache-Control", "Set-Cookie", "Location", "Content-Type"], "answer": 1, "explanation": "Set-Cookieは、セッション管理やCookie属性が重要。"}, {"id": "h62", "category": "header", "question": "機密情報で特に「no-store」を意識するヘッダはどれか。", "choices": ["Cache-Control", "Content-Type", "Location", "Set-Cookie"], "answer": 0, "explanation": "Cache-Controlは、機密情報では no-store を重視。"}, {"id": "h63", "category": "header", "question": "「Basic」「Bearer」などの認証方式を示すヘッダはどれか。", "choices": ["Set-Cookie", "Content-Type", "WWW-Authenticate", "Location"], "answer": 2, "explanation": "WWW-Authenticateは、主に 401 Unauthorized と組み合わせる。"}, {"id": "h64", "category": "header", "question": "CORSで許可するオリジンとして「https://example.com」や「*」を指定するヘッダはどれか。", "choices": ["Set-Cookie", "Location", "Access-Control-Allow-Origin", "Content-Type"], "answer": 2, "explanation": "Access-Control-Allow-Originは、同一オリジンポリシーの例外許可に関わる。"}, {"id": "h65", "category": "header", "question": "「max-age=31536000」「includeSubDomains」などを指定し、HTTPS接続を強制するヘッダはどれか。", "choices": ["Content-Type", "Location", "Set-Cookie", "Strict-Transport-Security"], "answer": 3, "explanation": "Strict-Transport-Securityは、HTTPへのダウングレード防止。"}, {"id": "h66", "category": "header", "question": "XSS対策として、読み込み元を「default-src 'self'」などで制限するヘッダはどれか。", "choices": ["Location", "Content-Security-Policy", "Set-Cookie", "Content-Type"], "answer": 1, "explanation": "Content-Security-Policyは、XSS対策として重要。"}, {"id": "h67", "category": "header", "question": "値として「nosniff」を指定するヘッダはどれか。", "choices": ["X-Content-Type-Options", "Set-Cookie", "Location", "Content-Type"], "answer": 0, "explanation": "X-Content-Type-Optionsは、MIME sniffing対策。"}, {"id": "h68", "category": "header", "question": "「strict-origin-when-cross-origin」などを指定し、Referer情報を調整するヘッダはどれか。", "choices": ["Set-Cookie", "Referrer-Policy", "Content-Type", "Location"], "answer": 1, "explanation": "Referrer-Policyは、URL情報の漏えい対策。"}, {"id": "h69", "category": "header", "question": "主に 401 Unauthorized と組み合わせて用いるヘッダはどれか。", "choices": ["Location", "Set-Cookie", "WWW-Authenticate", "Content-Type"], "answer": 2, "explanation": "WWW-Authenticateは、主に 401 Unauthorized と組み合わせる。"}, {"id": "h70", "category": "header", "question": "HTTPへのダウングレード防止に役立つヘッダはどれか。", "choices": ["Content-Type", "Strict-Transport-Security", "Set-Cookie", "Location"], "answer": 1, "explanation": "Strict-Transport-Securityは、HTTPへのダウングレード防止。"}];
+const $ = s => document.querySelector(s);
+const LABELS = ["ア","イ","ウ","エ"];
+let SESSION = [];
+let INDEX = 0;
+let ANSWERS = [];
+let NOW = true;
+
+function shuffle(arr) {
+  let a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+function show(el) { el.classList.remove("hidden"); }
+function hide(el) { el.classList.add("hidden"); }
+
+function selectedCategories() {
+  const cats = [];
+  if ($("#cbPort").checked) cats.push("port");
+  if ($("#cbHeader").checked) cats.push("header");
+  return cats;
+}
+function filteredBank() {
+  const cats = selectedCategories();
+  return BANK.filter(q => cats.includes(q.category));
+}
+function begin(pool) {
+  if (!pool.length) {
+    alert("少なくとも1つの出題範囲を選択してください。");
+    return;
+  }
+  SESSION = shuffle(pool).slice(0, Math.min(Number($("#count").value), pool.length));
+  INDEX = 0;
+  ANSWERS = [];
+  NOW = $("#mode").value === "now";
+  hide($("#start"));
+  hide($("#result"));
+  show($("#quiz"));
+  render();
+}
+$("#go").onclick = () => begin(filteredBank());
+$("#wrongGo").onclick = () => {
+  const ids = JSON.parse(localStorage.getItem("scMixedWrong") || "[]");
+  const cats = selectedCategories();
+  const pool = BANK.filter(q => ids.includes(q.id) && cats.includes(q.category));
+  if (!pool.length) {
+    alert("選択中の範囲に、前回の誤答履歴がありません。");
+    return;
+  }
+  begin(pool);
+};
+
+function render() {
+  const q = SESSION[INDEX];
+  $("#meta").textContent = "問題 " + (INDEX + 1) + " / " + SESSION.length;
+  $("#bar").style.width = ((INDEX / SESSION.length) * 100) + "%";
+  $("#question").textContent = q.question;
+  $("#choices").innerHTML = "";
+  hide($("#fb"));
+  hide($("#next"));
+  q.choices.forEach((c, j) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.innerHTML = '<span class="lab">' + LABELS[j] + '</span><span>' + c + '</span>';
+    b.onclick = () => answer(j);
+    $("#choices").appendChild(b);
+  });
+}
+
+function answer(j) {
+  const q = SESSION[INDEX];
+  const ok = j === q.answer;
+  ANSWERS.push({q:q, j:j, ok:ok});
+  Array.from($("#choices").children).forEach((b, k) => {
+    b.disabled = true;
+    if (NOW) {
+      if (k === q.answer) b.classList.add("correct");
+      if (k === j && !ok) b.classList.add("wrong");
+    }
+  });
+  if (NOW) {
+    $("#fb").textContent = (ok ? "正解。 " : "不正解。 ") + q.explanation;
+    show($("#fb"));
+    show($("#next"));
+  } else {
+    setTimeout(nextQuestion, 120);
+  }
+}
+function nextQuestion() {
+  INDEX += 1;
+  if (INDEX >= SESSION.length) {
+    finish();
+    return;
+  }
+  render();
+}
+$("#next").onclick = nextQuestion;
+
+function finish() {
+  hide($("#quiz"));
+  show($("#result"));
+  const ok = ANSWERS.filter(x => x.ok).length;
+  $("#score").textContent = ok + " / " + ANSWERS.length + "（" + Math.round(ok / ANSWERS.length * 100) + "%）";
+  $("#review").innerHTML = "";
+  ANSWERS.forEach((a, n) => {
+    const d = document.createElement("details");
+    d.open = !a.ok;
+    d.innerHTML =
+      "<summary>問" + (n + 1) + " " + (a.ok ? "○" : "×") + "</summary>" +
+      "<p><b>問題：</b> " + a.q.question + "</p>" +
+      "<p><b>あなた：</b> " + a.q.choices[a.j] + "<br>" +
+      "<b>正解：</b> " + a.q.choices[a.q.answer] + "<br>" +
+      "<b>解説：</b> " + a.q.explanation + "</p>";
+    $("#review").appendChild(d);
+  });
+  const wrongIds = ANSWERS.filter(x => !x.ok).map(x => x.q.id);
+  localStorage.setItem("scMixedWrong", JSON.stringify(wrongIds));
+  $("#retry").disabled = wrongIds.length === 0;
+}
+$("#retry").onclick = () => {
+  const pool = ANSWERS.filter(x => !x.ok).map(x => x.q);
+  if (pool.length) begin(pool);
+};
+$("#home").onclick = () => {
+  hide($("#result"));
+  show($("#start"));
+};
+</script>
+</body>
+</html>
