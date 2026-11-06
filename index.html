@@ -54,6 +54,31 @@ select { padding:9px; border:1px solid var(--line); border-radius:10px; backgrou
 .score { font-size:42px; font-weight:900; }
 details { border:1px solid var(--line); border-radius:12px; padding:10px; margin-top:8px; }
 summary { font-weight:800; cursor:pointer; }
+
+/* 回答選択肢の視認性: PC/iPhone共通 */
+.choice {
+  font-size: 17px;
+  line-height: 1.5;
+  min-height: 58px;
+  align-items: center;
+}
+.choice .lab {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  font-size: 16px;
+}
+.choice > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .choice {
+    font-size: 16.5px;
+    padding: 14px;
+    line-height: 1.5;
+  }
+}
 </style>
 </head>
 <body>
